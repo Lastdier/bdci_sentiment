@@ -2,7 +2,8 @@ import jieba
 import pandas as pd
 
 
-train = pd.read_csv('data/test_public.csv')
+jieba.load_userdict('userdict.txt')
+train = pd.read_csv('data/train.csv')
 outstr = ''
 for content in train['content']:
     temp = ''
@@ -17,6 +18,6 @@ for content in train['content']:
     temp += '\n'
     outstr += temp
 
-out_f = open('segmentation_test.txt', 'w')
+out_f = open('segmentation_train.txt', 'w')
 out_f.write(outstr)
 out_f.close()

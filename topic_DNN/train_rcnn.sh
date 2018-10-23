@@ -1,0 +1,1 @@
+python main_cv.py main --embedding_path='sgns.weibo.bigram-char' --max_epoch=30 --plot_every=10 --model='RCNN' --batch-size=512  --lr=0.001 --lr2=0.000 --lr_decay=0.8 --decay_every=40 --content-dim=500  --kernel-size=2 --kmax-pooling=1 --linear-hidden-size=2000 --hidden-size=300 --type_='char'
