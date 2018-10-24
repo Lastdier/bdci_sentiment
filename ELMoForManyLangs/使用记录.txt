@@ -1,0 +1,10 @@
+输入为：
+分好词的文本，用\t作间隔符
+
+python src/gen_elmo.py test \
+    --input_format plain \
+    --input ./segmentation_train.txt \
+    --model ./zhs.model \
+    --output_prefix ./output/ \
+    --output_format txt \
+    --output_layer -1
