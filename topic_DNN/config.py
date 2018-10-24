@@ -18,7 +18,7 @@ class Config(object):
     word2index = json.load(fff)
     fff.close()
 
-    vocab_size = 2867       # len(word2index)
+    vocab_size = 2868       # len(word2index)
 
     if type_ == 'word':
         vocab_size = len(word2index)

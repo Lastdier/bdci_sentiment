@@ -1,10 +1,28 @@
+需安装overrides包，一个自动检测需要继承方法的工具
+
+
 输入为：
 分好词的文本，用\t作间隔符
 
+elmo词表里面，只有英文标点，无中文标点
+应该对文本作归一化处理，即标点统一转化为英文
+
 python src/gen_elmo.py test \
+    --gpu 0 \
     --input_format plain \
     --input ./segmentation_train.txt \
     --model ./zhs.model \
-    --output_prefix ./output/ \
+    --output_prefix ./output/my_elmo \
     --output_format txt \
-    --output_layer -1
+    --output_layer -1 \
+    --batch_size 16
+
+python src/gen_elmo.py test \
+    --gpu 0 \
+    --input_format plain \
+    --input ./segmentation_train.txt \
+    --model ./zhs.model \
+    --output_prefix ./output/test_elmo \
+    --output_format txt \
+    --output_layer -1 \
+    --batch_size 1

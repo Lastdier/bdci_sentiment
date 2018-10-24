@@ -26,7 +26,6 @@ class My_dataset(data.Dataset):
                 self.index2id.append(content_id)
                 label = [0] * 10
                 label[SUBJECT_MASK[train['subject'][i]]] = 1
-                word_list = []
                 # 使用jieba分词
                 content = train['content'][i].strip()
                 content = content.replace(' ', '')
@@ -36,10 +35,9 @@ class My_dataset(data.Dataset):
                 content = jieba.lcut(content, cut_all=False)
                 character_list = ''
                 for w in content:
-                    word_list.append(w)
                     character_list += w    
 
-                self.train_no_dup[content_id] = [word_list, label, character_list]
+                self.train_no_dup[content_id] = [content, label, character_list]
             # add new label
             else:
                 self.train_no_dup[content_id][1][SUBJECT_MASK[train['subject'][i]]] = 1
@@ -60,19 +58,16 @@ class My_dataset(data.Dataset):
         self.trainning = True
 
         self.word2index = opt.word2index
-        fff = open('char2index.json', 'r')
+        fff = open('../char2index.json', 'r')
         self.char2index = json.load(fff)
         fff.close()
 
         random.seed(19950717)
     
     def multilabelfile(self, path):
-        out_file = open(path, 'w')
+        out_file = open(path, 'w', encoding='utf-8')
         out_str = "%s,%s,%s,%s\n" % ('id', 'article', 'word_seg','class')
         
-        fff = open('char2index.json', 'r')
-        char2index = json.load(fff)
-        fff.close()
         for i in self.train_no_dup:
             temp = ''
             for j in range(10):
@@ -80,11 +75,11 @@ class My_dataset(data.Dataset):
                     temp += str(j) + ' '
             temp = temp[:len(temp)-1]
             article = ''
-            for j in self.train_no_dup[i][0]:
-                article += str(char2index[j]) + ' '
+            for j in self.train_no_dup[i][2]:
+                article += str(self.char2index[j]) + ' '
             article = article[:len(article)-1]
             word_seg = ''
-            for j in jieba.lcut(self.train_no_dup[i][0], cut_all=False):
+            for j in self.train_no_dup[i][0]:
                 if self.word2index.get(j) is not None:
                     word_seg += str(self.word2index[j]) + ' '
             word_seg = word_seg[:len(word_seg)-1]
@@ -176,28 +171,6 @@ class My_dataset(data.Dataset):
         return len(self.current_index_set)
 
 if __name__ == '__main__':
-    #mmm = My_dataset(100)
-    #mmm.multilabelfile('multilabel.csv')
-    # out_file = open('test_processed.csv', 'w')
-    # out_str = "%s,%s,%s\n" % ('id', 'article', 'word_seg')
-    # fff = open('../word2index.json', 'r')
-    # word2index = json.load(fff)
-    # fff.close()
-    # fff = open('../char2index.json', 'r')
-    # char2index = json.load(fff)
-    # fff.close()
-    # test_file = pd.read_csv('test_public.csv')
-    # for i in range(len(test_file['content'])):
-    #     article = ''
-    #     for j in test_file['content'][i]:
-    #         article += str(char2index[j]) + ' '
-    #     article = article[:len(article)-1]
-    #     word_seg = ''
-    #     for j in jieba.lcut(test_file['content'][i], cut_all=False):
-    #         if word2index.get(j) is not None:
-    #             word_seg += str(word2index[j]) + ' '
-    #     word_seg = word_seg[:len(word_seg)-1]
-    #     out_str += "%s,%s,%s\n" % (test_file['content_id'][i], article, word_seg)
-    # out_file.write(out_str)
-    # out_file.close()
+    mmm = My_dataset(100)
+    mmm.multilabelfile('multilabel_n.csv')
     pass

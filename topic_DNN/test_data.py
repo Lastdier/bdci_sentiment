@@ -54,14 +54,14 @@ class My_test_dataset(data.Dataset):
             if self.word2index.get(word) is not None:
                 sen_inds.append(self.word2index[word])
             else:
-                sen_inds.append(self.word2index['unknown'])
+                sen_inds.append(self.word2index['<oov>'])
         
         char_inds = []
         for char in characters:
             if self.char2index.get(char) is not None:
                 char_inds.append(self.char2index[char])
             else:
-                char_inds.append(self.char2index['unknown'])
+                char_inds.append(self.char2index['<oov>'])
 
         if len(sen_inds) > self.max_len: 
             sen_inds = sen_inds[:self.max_len]
@@ -81,6 +81,40 @@ class My_test_dataset(data.Dataset):
 
     def __len__(self):
         return self.data_len
+
+
+def get_processed_test(path):
+    fff = open('word2index.json', 'r')
+    word2index = json.load(fff)
+    fff.close()
+    fff = open('char2index.json', 'r')
+    char2index = json.load(fff)
+    fff.close()
+    fff = open(path, 'w', encoding='utf-8')
+    out_str = "%s,%s,%s\n" % ('id', 'article', 'word_seg')
+    test = pd.read_csv('data/test_public.csv')
+
+    for i, sentence in enumerate(test['content']):
+        sentence = sentence.strip()
+        sentence = sentence.replace(' ', '')
+        sentence = sentence.replace('，', ',')
+        sentence = sentence.replace('？', '?')
+        sentence = sentence.replace('！', '!')
+
+        article = ''
+        for j in sentence:
+            article += str(char2index[j]) + ' '
+        article = article[:len(article)-1]
+
+        sentence = jieba.lcut(sentence, cut_all=False)
+        word_seg = ''
+        for j in sentence:
+            if word2index.get(j) is not None:
+                word_seg += str(word2index[j]) + ' '
+        word_seg = word_seg[:len(word_seg)-1]
+        out_str += "%s,%s,%s\n" % (i, article, word_seg)
+    fff.write(out_str)
+    fff.close
 
 
 def testing(name=None, model=None, get_prob=False):
