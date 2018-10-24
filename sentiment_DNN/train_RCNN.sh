@@ -1,0 +1,1 @@
+python main_sentiment_cv.py main --max_epoch=10 --plot_every=10 --model='RCNN' --batch-size=1024  --lr=0.001 --lr2=0.000 --lr_decay=0.8 --content-dim=500 --kernel-size=2 --kmax-pooling=1 --linear-hidden-size=2000 --hidden-size=256 --num-workers=4 --type_='char'

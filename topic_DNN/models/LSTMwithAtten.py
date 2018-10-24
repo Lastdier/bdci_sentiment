@@ -27,6 +27,7 @@ class SelfAttention(nn.Module):
         # (B, L, H)
         u_it = self.projection(encoder_outputs)
         # (B, L, H)
+        # TODO: 如何正确取出代表句子表示的最后一步隐含层输出，u_w实现是否正确
         u_w = self.uw_projection(encoder_outputs[:,encoder_outputs.size(1)-1,:]).unsqueeze(1).permute(0, 2, 1)   #取出encoder最后的一步的输出
         # (B, H, 1)
         mul = torch.bmm(u_it, u_w)
@@ -34,7 +35,7 @@ class SelfAttention(nn.Module):
         weights = torch.nn.functional.softmax(mul)
         # (B, H, L) * (B, L, 1) -> (B, H)
         outputs = torch.bmm(encoder_outputs.permute(0, 2, 1), weights).squeeze()
-        return outputs, weights
+        return outputs, weights.squeeze()
 
 
 class LSTMwithAtten(BasicModule): 

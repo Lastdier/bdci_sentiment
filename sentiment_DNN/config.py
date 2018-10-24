@@ -2,12 +2,12 @@ import json
 
 
 class Config(object):
-    loss = 'multilabelloss'
+    loss = 'crossEntropy'
     model = 'MultiCNNTextBNDeep'
     content_dim = 300
     embedding_dim = 300
-    linear_hidden_size = 2000
-    num_classes = 10
+    linear_hidden_size = 500
+    num_classes = 3
     
     type_ = 'word'
 
@@ -17,7 +17,7 @@ class Config(object):
     word2index = json.load(fff)
     fff.close()
 
-    vocab_size = 2868       # len(word2index)
+    vocab_size = 2867       # len(word2index)
 
     if type_ == 'word':
         vocab_size = len(word2index)

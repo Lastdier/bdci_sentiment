@@ -42,6 +42,8 @@ class My_test_dataset(data.Dataset):
         sentence = sentence.replace('，', ',')
         sentence = sentence.replace('？', '?')
         sentence = sentence.replace('！', '!')
+        sentence = sentence.replace('（', '(')
+        sentence = sentence.replace('）', ')')
         sentence = jieba.lcut(sentence, cut_all=False)
 
         # sentence = [self.word2index[word] for word in sentence if self.word2index.get(word) is not None else self.word2index['unknown']]
@@ -100,6 +102,8 @@ def get_processed_test(path):
         sentence = sentence.replace('，', ',')
         sentence = sentence.replace('？', '?')
         sentence = sentence.replace('！', '!')
+        sentence = sentence.replace('（', '(')
+        sentence = sentence.replace('）', ')')
 
         article = ''
         for j in sentence:
@@ -145,13 +149,7 @@ def testing(name=None, model=None, get_prob=False):
 
         score = model(content)
         if opt.model == 'LSTMwithAtten':
-                    weights = score[1]
-                    score = score[0]
-                    for l, iid in enumerate(sen_id):
-                        temp = iid + ' '
-                        for wei in weights[l]:
-                            temp += str(wei) + ' '
-                        print(temp, file=weight_file)
+            score = score[0]
 
         pred_prob = torch.nn.functional.sigmoid(score).detach().cpu().tolist()
         # pred_prob = score.detach().cpu().tolist()
@@ -210,6 +208,14 @@ def val_fold(name, dataset, pred_probs):
             elif opt.type_ == 'char':
                 content,label = characters.cuda(),label.cuda()
             score = model(content)
+            if opt.model == 'LSTMwithAtten':
+                weights = score[1].detach().cpu().numpy()
+                score = score[0]
+                for l, iid in enumerate(sen_id):
+                    temp = iid + ' '
+                    for wei in weights[l]:
+                        temp += str(wei) + ' '
+                    print(temp, file=weight_file)
             # predict = score.detach().cpu().numpy()
             # predict_ind = np.zeros((predict.shape[0], 10), dtype=np.int32)
             # for i in range(predict.shape[0]):
@@ -236,11 +242,11 @@ def stacking_train_set(**kwargs):
     if opt.type_ == "char":
         lll = 150
     dataset = My_dataset(lll, cv=True)
-    cv0 = 'LSTMText_0_score0.860583791031048'
-    cv1 = 'LSTMText_1_score0.858615648592489'
-    cv2 = 'LSTMText_2_score0.8662159824784799'
-    cv3 = 'LSTMText_3_score0.8738696550582634'
-    cv4 = 'LSTMText_4_score0.8587597336885189'
+    cv0 = 'LSTMwithAtten_0_score0.826565392636631'
+    cv1 = 'LSTMwithAtten_1_score0.8276968617516884'
+    cv2 = 'LSTMwithAtten_2_score0.819036206150207'
+    cv3 = 'LSTMwithAtten_3_score0.8308396152177746'
+    cv4 = 'LSTMwithAtten_4_score0.8127351966913197'
 
     pred_probs = {}
     pred_probs, test_prob = val_fold(cv0, dataset, pred_probs)
