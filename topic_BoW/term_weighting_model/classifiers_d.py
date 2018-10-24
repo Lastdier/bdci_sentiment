@@ -118,7 +118,7 @@ def main(save=False):
     print("loading data from", pk_url)
     X7, X_test7 = joblib.load(pk_url)
 
-    test_url = from_project_root("data/test_processed.csv")
+    test_url = from_project_root("../data/test_processed.csv")
 
     
     clf = OneVsRestClassifier(XGBClassifier(n_jobs=-1))  # xgb's default n_jobs=1
@@ -176,7 +176,7 @@ def main(save=False):
         for kkk in labels:
             output_str += "%s,%s,0,\n" % (test_public['id'][jjj], SUBJECT_LIST[kkk])
     print('%d no label' % no_label)
-    outfile = open('../rcnn.csv', 'w')
+    outfile = open('../result/rcnn.csv', 'w')
     outfile.write(output_str)
     outfile.close()
     pass

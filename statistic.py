@@ -7,7 +7,7 @@ import math
 
 
 train = pd.read_csv('data/train.csv')
-
+jieba.load_userdict('userdict.txt')
 SUBJECT_MASK = {'价格': 0, '配置': 1, '操控': 2, '舒适性': 3, '油耗': 4, '动力': 5, '内饰': 6, '安全性': 7, '空间': 8, '外观': 9}
 SUBJECT_LIST = ['价格', '配置', '操控', '舒适性', '油耗', '动力', '内饰', '安全性', '空间', '外观']
 def subject_distribution():
@@ -80,7 +80,11 @@ def sentiment_word_distribution():
 def tokenization(min_count=1):
     vol_dict = {}
     for i in train['content']:
-        sentence = jieba.cut(i, cut_all=False)
+        sentence = i.strip()
+        sentence = sentence.replace('，', ',')
+        sentence = sentence.replace('？', '?')
+        sentence = sentence.replace('！', '!')
+        sentence = jieba.cut(sentence, cut_all=False)
         for j in sentence:
             if vol_dict.get(j) is None:
                 vol_dict[j] = 1
@@ -89,14 +93,19 @@ def tokenization(min_count=1):
     # load test
     test = pd.read_csv('data/test_public.csv')
     for i in test['content']:
-        sentence = jieba.cut(i, cut_all=False)
+        sentence = i.strip()
+        sentence = sentence.replace(' ', '')
+        sentence = sentence.replace('，', ',')
+        sentence = sentence.replace('？', '?')
+        sentence = sentence.replace('！', '!')
+        sentence = jieba.cut(sentence, cut_all=False)
         for j in sentence:
             if vol_dict.get(j) is None:
                 vol_dict[j] = 1
             else:
                 vol_dict[j] += 1
-    word2index = {'padding': 0,
-                    'unknown': 1}
+    word2index = {'<pad>': 0,
+                    '<oov>': 1}
     pointer = 2
     for i in vol_dict:
         # filter
@@ -104,14 +113,19 @@ def tokenization(min_count=1):
             word2index[i] = pointer
             pointer += 1
     
-    with open('word2index.json', 'w') as outfile:
+    with open('topic_DNN/word2index.json', 'w', encoding='utf-8') as outfile:
         json.dump(word2index, outfile)
 
 
 def character_tokenizer(min_count=1):
     vol_dict = {}
     for i in train['content']:
-        for j in i:
+        sentence = i.strip()
+        sentence = sentence.replace(' ', '')
+        sentence = sentence.replace('，', ',')
+        sentence = sentence.replace('？', '?')
+        sentence = sentence.replace('！', '!')
+        for j in sentence:
             if vol_dict.get(j) is None:
                 vol_dict[j] = 1
             else:
@@ -119,13 +133,18 @@ def character_tokenizer(min_count=1):
     # load test
     test = pd.read_csv('data/test_public.csv')
     for i in test['content']:
+        sentence = i.strip()
+        sentence = sentence.replace(' ', '')
+        sentence = sentence.replace('，', ',')
+        sentence = sentence.replace('？', '?')
+        sentence = sentence.replace('！', '!')
         for j in i:
             if vol_dict.get(j) is None:
                 vol_dict[j] = 1
             else:
                 vol_dict[j] += 1
-    char2index = {'padding': 0,
-                    'unknown': 1}
+    char2index = {'<pad>': 0,
+                    '<oov>': 1}
     pointer = 2
     for i in vol_dict:
         # filter
@@ -133,7 +152,7 @@ def character_tokenizer(min_count=1):
             char2index[i] = pointer
             pointer += 1
     
-    with open('char2index.json', 'w') as outfile:
+    with open('topic_DNN/char2index.json', 'w', encoding='utf-8') as outfile:
         json.dump(char2index, outfile)
 
 
@@ -193,4 +212,4 @@ def get_95_shortest():
 
 
 if __name__ == '__main__':
-    get_95_shortest()
+    character_tokenizer()

@@ -292,8 +292,8 @@ class Vector_generator(BaseEstimator, TransformerMixin):
 
 
 def main():
-    train_url = from_project_root("data/multilabel.csv")
-    test_url = from_project_root("data/test_processed.csv")
+    train_url = from_project_root("../data/multilabel.csv")
+    test_url = from_project_root("../data/test_processed.csv")
     generate_vectors(train_url, test_url, 'word_seg')
     pass
 

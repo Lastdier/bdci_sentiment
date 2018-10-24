@@ -38,6 +38,7 @@ class My_test_dataset(data.Dataset):
         sen_id = self.test['content_id'][index]
         sentence = self.test['content'][index]
         sentence = sentence.strip()
+        sentence = sentence.replace(' ', '')
         sentence = sentence.replace('，', ',')
         sentence = sentence.replace('？', '?')
         sentence = sentence.replace('！', '!')
