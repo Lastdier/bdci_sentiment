@@ -24,13 +24,16 @@ class SelfAttention(nn.Module):
         )
 
     def forward(self, encoder_outputs):
-        # (B, L, H) -> (B , L, 1)
+        # (B, L, H)
         u_it = self.projection(encoder_outputs)
-        u_w = self.uw_projection(encoder_outputs[:,encoder_outputs.size(1)-1,:])
-        mul = u_it.transpose() * u_w
+        # (B, L, H)
+        u_w = self.uw_projection(encoder_outputs[:,encoder_outputs.size(1)-1,:]).unsqueeze(1).permute(0, 2, 1)   #取出encoder最后的一步的输出
+        # (B, H, 1)
+        mul = torch.bmm(u_it, u_w)
+        # (B, L, 1)
         weights = torch.nn.functional.softmax(mul)
-        # (B, L, H) * (B, L, 1) -> (B, H)
-        outputs = (encoder_outputs * weights.unsqueeze(-1)).sum(dim=1)
+        # (B, H, L) * (B, L, 1) -> (B, H)
+        outputs = torch.bmm(encoder_outputs.permute(0, 2, 1), weights).squeeze()
         return outputs, weights
 
 
@@ -47,7 +50,7 @@ class LSTMwithAtten(BasicModule):
         
         self.content_lstm =nn.LSTM(input_size = opt.embedding_dim,
                             hidden_size = opt.hidden_size,
-                            num_layers = opt.num_layers,
+                            num_layers = 1,
                             bias = True,
                             batch_first = False,
                             bidirectional = True

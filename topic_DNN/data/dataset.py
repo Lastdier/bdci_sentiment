@@ -11,13 +11,13 @@ sys.path.append("..")
 from config import opt
 
 
-jieba.load_userdict('../userdict.txt')
+jieba.load_userdict('userdict.txt')
 # {'价格': 1272, '配置': 852, '操控': 1035, '舒适性': 930, '油耗': 1081, '动力': 2731, '内饰': 535, '安全性': 572, '空间': 441, '外观': 488}
 SUBJECT_MASK = {'价格': 0, '配置': 1, '操控': 2, '舒适性': 3, '油耗': 4, '动力': 5, '内饰': 6, '安全性': 7, '空间': 8, '外观': 9}
 class My_dataset(data.Dataset):
     
     def __init__(self, max_len, cv=False, augment=False):
-        train = pd.read_csv('../data/train.csv')
+        train = pd.read_csv('data/train.csv')
         self.train_no_dup = {}  # [content_id][0] content  [content_id][1] multi-label
         self.index2id = []
         for i, content_id in enumerate(train['content_id']):
@@ -32,6 +32,8 @@ class My_dataset(data.Dataset):
                 content = content.replace('，', ',')
                 content = content.replace('？', '?')
                 content = content.replace('！', '!')
+                content = content.replace('（', '(')
+                content = content.replace('）', ')')
                 content = jieba.lcut(content, cut_all=False)
                 character_list = ''
                 for w in content:
@@ -58,7 +60,7 @@ class My_dataset(data.Dataset):
         self.trainning = True
 
         self.word2index = opt.word2index
-        fff = open('../char2index.json', 'r')
+        fff = open('char2index.json', 'r')
         self.char2index = json.load(fff)
         fff.close()
 
