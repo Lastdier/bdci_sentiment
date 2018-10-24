@@ -112,7 +112,7 @@ def get_processed_test(path):
             if word2index.get(j) is not None:
                 word_seg += str(word2index[j]) + ' '
         word_seg = word_seg[:len(word_seg)-1]
-        out_str += "%s,%s,%s\n" % (i, article, word_seg)
+        out_str += "%s,%s,%s\n" % (test['content_id'][i], article, word_seg)
     fff.write(out_str)
     fff.close
 
