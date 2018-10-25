@@ -36,12 +36,8 @@ class Multitask(BasicModule):
         # (B, L, H)
         lstm_out = self.fc1(lstm_out)
         lstm_out = self.act1(lstm_out)
-        print(type(lstm_out))
         lstm_out = self.act2(self.fc3(lstm_out))
-        mlp = self.mlps[topic[0]]
-        print(type(mlp))
-        print(type(lstm_out))
-        out = mlp(lstm_out)
+        out = self.mlps[topic[0]](lstm_out)
         return out
     
     def load_embedding(self, myembedding):

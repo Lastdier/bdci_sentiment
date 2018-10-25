@@ -1,0 +1,1 @@
+python main_cv_elmo.py main --max_epoch=30 --plot_every=10 --model='LSTMforELMo' --batch-size=512  --lr=0.001 --lr_decay=0.8 --decay_every=40 --content-dim=500  --kernel-size=2 --kmax-pooling=1 --linear-hidden-size=2000 --hidden-size=1024 --early_stoping=20
