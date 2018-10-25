@@ -178,7 +178,6 @@ def create_one_batch(x, word2id, char2id, config, oov='<oov>', pad='<pad>', sort
         else:
           temp += x_ij + '/'
       temp = temp[:-1]
-      temp += '\n'
       print(temp, file=oovttt)
         
   else:
