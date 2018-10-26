@@ -13,6 +13,7 @@ from data.dataset import My_dataset
 from sklearn.externals import joblib
 import fire
 sys.path.append("..")
+from sklearn.externals import joblib
 
 
 weight_file = open('weights.csv', 'w')
@@ -20,112 +21,22 @@ SUBJECT_LIST = ['价格', '配置', '操控', '舒适性', '油耗', '动力', '
 SUBJECT_MASK = {'价格': 0, '配置': 1, '操控': 2, '舒适性': 3, '油耗': 4, '动力': 5, '内饰': 6, '安全性': 7, '空间': 8, '外观': 9}
 class My_test_dataset(data.Dataset):
     
-    def __init__(self, max_len):
+    def __init__(self):
+        self.elmo = joblib.load('data/test_sample_vector.pk')
         self.test = pd.read_csv('data/test_public.csv')
 
-        self.max_len = max_len
-        self.data_len = len(self.test['content'])
-
-        fff = open('word2index.json', 'r')
-        self.word2index = json.load(fff)
-        fff.close()
-        fff = open('char2index.json', 'r')
-        self.char2index = json.load(fff)
-        fff.close()
-        self.char_max_len = 150
+        self.data_len = self.elmo.shape(0)
 
     def __getitem__(self, index):
         sen_id = self.test['content_id'][index]
-        sentence = self.test['content'][index]
-        sentence = sentence.strip()
-        sentence = sentence.replace(' ', '')
-        sentence = sentence.replace('，', ',')
-        sentence = sentence.replace('？', '?')
-        sentence = sentence.replace('！', '!')
-        sentence = sentence.replace('（', '(')
-        sentence = sentence.replace('）', ')')
-        sentence = jieba.lcut(sentence, cut_all=False)
-
-        # sentence = [self.word2index[word] for word in sentence if self.word2index.get(word) is not None else self.word2index['unknown']]
-        sen_inds = []
-        characters = ''
-        for word in sentence:
-            if word == ' ':
-                continue
-            characters += word
-            if self.word2index.get(word) is not None:
-                sen_inds.append(self.word2index[word])
-            else:
-                sen_inds.append(self.word2index['<oov>'])
-        
-        char_inds = []
-        for char in characters:
-            if self.char2index.get(char) is not None:
-                char_inds.append(self.char2index[char])
-            else:
-                char_inds.append(self.char2index['<oov>'])
-
-        if len(sen_inds) > self.max_len: 
-            sen_inds = sen_inds[:self.max_len]
-        else:
-            pad = [0] * (self.max_len - len(sen_inds))
-            sen_inds += pad
-
-        if len(char_inds) > self.char_max_len: 
-            char_inds = char_inds[:self.char_max_len]
-        else:
-            pad = [0] * (self.char_max_len - len(char_inds))
-            char_inds += pad
-
-        characters = torch.from_numpy(np.array(char_inds)).long()
-        sentence = torch.from_numpy(np.array(sen_inds)).long()
-        return sentence, characters, sen_id
+        return self.elmo[index], sen_id
 
     def __len__(self):
         return self.data_len
 
 
-def get_processed_test(path):
-    fff = open('word2index.json', 'r')
-    word2index = json.load(fff)
-    fff.close()
-    fff = open('char2index.json', 'r')
-    char2index = json.load(fff)
-    fff.close()
-    fff = open(path, 'w', encoding='utf-8')
-    out_str = "%s,%s,%s\n" % ('id', 'article', 'word_seg')
-    test = pd.read_csv('data/test_public.csv')
-
-    for i, sentence in enumerate(test['content']):
-        sentence = sentence.strip()
-        sentence = sentence.replace(' ', '')
-        sentence = sentence.replace('，', ',')
-        sentence = sentence.replace('？', '?')
-        sentence = sentence.replace('！', '!')
-        sentence = sentence.replace('（', '(')
-        sentence = sentence.replace('）', ')')
-
-        article = ''
-        for j in sentence:
-            article += str(char2index[j]) + ' '
-        article = article[:len(article)-1]
-
-        sentence = jieba.lcut(sentence, cut_all=False)
-        word_seg = ''
-        for j in sentence:
-            if word2index.get(j) is not None:
-                word_seg += str(word2index[j]) + ' '
-        word_seg = word_seg[:len(word_seg)-1]
-        out_str += "%s,%s,%s\n" % (test['content_id'][i], article, word_seg)
-    fff.write(out_str)
-    fff.close
-
-
 def testing(name=None, model=None, get_prob=False):
-    lll = 100
-    if opt.type_ == "char":
-        lll = 150
-    dataset = My_test_dataset(lll)
+    dataset = My_test_dataset()
     dataloader = data.DataLoader(dataset,
                 batch_size=128,
                 shuffle=False,
@@ -140,13 +51,8 @@ def testing(name=None, model=None, get_prob=False):
 
     preds = []
     pred_probs = []
-    for i, (content, characters, sen_id) in tqdm.tqdm(enumerate(dataloader)):
-        # 训练 更新参数
-        if opt.type_ == 'word':
-            content = content.cuda()
-        elif opt.type_ == 'char':
-            content = characters.cuda()
-
+    for i, (content, sen_id) in tqdm.tqdm(enumerate(dataloader)):
+        content = content.cuda()
         score = model(content)
         if opt.model == 'LSTMwithAtten':
             score = score[0]

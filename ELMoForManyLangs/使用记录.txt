@@ -26,3 +26,9 @@ python src/gen_elmo.py test \
     --output_format txt \
     --output_layer -1 \
     --batch_size 1
+
+
+CNN效果最好
+RCNN次之
+LSTM较差
+

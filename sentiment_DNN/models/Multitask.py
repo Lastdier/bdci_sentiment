@@ -28,13 +28,21 @@ class Multitask(BasicModule):
         self.act1 = nn.Tanh()
         self.act2 = nn.ReLU(True)
         self.fc3 = nn.Linear(2*opt.hidden_size, opt.linear_hidden_size)
-        self.mlps = [nn.Linear(opt.linear_hidden_size, 3) for _ in range(10)]
+        mlps = [nn.Linear(opt.linear_hidden_size, 3) for _ in range(10)]
+        self.mlps = nn.ModuleList(mlps)
 
     def forward(self, content, topic):
         embedded = self.encoder(content)
-        lstm_out = self.content_lstm(embedded.permute(1,0,2))[0].permute(1,0,2)
+        lstm_out = self.content_lstm(embedded.permute(1,0,2))[0] # .permute(1,0,2)
+        # (L, B, H)
+        forward = lstm_out[-1,:,:self.opt.hidden_size]
+        backward = lstm_out[1,:,self.opt.hidden_size:]
+        represent = torch.cat((forward, backward), dim=-1)
+        print(represent.size())
+        # (1, B, H)
+
         # (B, L, H)
-        lstm_out = self.fc1(lstm_out)
+        lstm_out = self.fc1(represent)
         lstm_out = self.act1(lstm_out)
         lstm_out = self.act2(self.fc3(lstm_out))
         out = self.mlps[topic[0]](lstm_out)

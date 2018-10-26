@@ -61,7 +61,7 @@ def main(**kwargs):
     lr,lr2=opt.lr,opt.lr2
     loss_function = getattr(models,opt.loss)()  
 
-    dataset = My_dataset(opt.seq_len, cv=True, augment=opt.augument)
+    dataset = My_dataset(cv=True)
     dataloader = data.DataLoader(dataset,
                     batch_size = opt.batch_size,
                     shuffle = True,

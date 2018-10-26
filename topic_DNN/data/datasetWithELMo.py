@@ -15,7 +15,7 @@ from sklearn.externals import joblib
 SUBJECT_MASK = {'价格': 0, '配置': 1, '操控': 2, '舒适性': 3, '油耗': 4, '动力': 5, '内饰': 6, '安全性': 7, '空间': 8, '外观': 9}
 class My_dataset(data.Dataset):
     
-    def __init__(self, max_len, cv=False, augment=False):    
+    def __init__(self, cv=False):    
         self.elmo = joblib.load('data/sample_vector.pk')
         # (8290, 100, 1024)
         self.index2id = []

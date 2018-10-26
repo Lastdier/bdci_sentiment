@@ -27,12 +27,12 @@ def val(model,dataset):
     f1 = 0.
     count = 0
     with torch.no_grad():
-        for i,(content, characters, label) in tqdm.tqdm(enumerate(dataloader)):
+        for i, (content, characters, label, topic) in tqdm.tqdm(enumerate(dataloader)):
             if opt.type_ == 'word':
                 content,label = content.cuda(),label.cuda()
             elif opt.type_ == 'char':
                 content,label = characters.cuda(),label.cuda()
-            score = model(content)
+            score = model(content, topic)
 
             loss += loss_function(score, label.squeeze(1))
             predict = score.data.topk(1,dim=1)[1].cpu().numpy()
@@ -97,7 +97,8 @@ def main(**kwargs):
                     content,label = characters.cuda(),label.cuda()
                 optimizer.zero_grad()
                 score = model(content, topic)
-
+                print(score.size())
+                print(label.size())
                 predict = score.data.topk(1,dim=1)[1].cpu().numpy()
                 loss = loss_function(score, label.squeeze(1))
                 

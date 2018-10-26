@@ -33,7 +33,7 @@ class Config(object):
     lr = 5e-4 # 学习率
     lr2 = 1e-4 # embedding层的学习率
     min_lr = 1e-5
-    lr_decay = 0.99
+    lr_decay = 0.8
     weight_decay = 1e-5
 
     batch_size = 128
@@ -49,6 +49,7 @@ class Config(object):
     num_layers = 2
 
     early_stoping = 5
+    swem_type = 'max'
 
 
 def parse(self,kwargs,print_=True):
