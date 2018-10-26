@@ -9,6 +9,7 @@ import torch
 import sys
 sys.path.append("..")
 from config import opt
+import re
 
 
 jieba.load_userdict('userdict.txt')
@@ -26,8 +27,11 @@ class My_dataset(data.Dataset):
                 self.index2id.append(content_id)
                 label = [0] * 10
                 label[SUBJECT_MASK[train['subject'][i]]] = 1
+                sentiment = [0] * 3
+                sentiment[train['sentiment_value'][i] + 1] = 1    # 情感值+1
                 # 使用jieba分词
                 content = train['content'][i].strip()
+                content = re.sub(r'(https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]', '', content)
                 content = content.replace(' ', '')
                 content = content.replace('，', ',')
                 content = content.replace('？', '?')
@@ -39,10 +43,11 @@ class My_dataset(data.Dataset):
                 for w in content:
                     character_list += w    
 
-                self.train_no_dup[content_id] = [content, label, character_list]
+                self.train_no_dup[content_id] = [content, label, character_list, sentiment]
             # add new label
             else:
                 self.train_no_dup[content_id][1][SUBJECT_MASK[train['subject'][i]]] = 1
+                self.train_no_dup[content_id][3][train['sentiment_value'][i] + 1] += 1
 
         self.max_len = max_len
         self.char_max_len = 150 # 119 %95
@@ -66,16 +71,30 @@ class My_dataset(data.Dataset):
 
         random.seed(19950717)
     
-    def multilabelfile(self, path):
+    def multilabelfile(self, path, sentiment=False):
         out_file = open(path, 'w', encoding='utf-8')
         out_str = "%s,%s,%s,%s\n" % ('id', 'article', 'word_seg','class')
         
         for i in self.train_no_dup:
             temp = ''
-            for j in range(10):
-                if self.train_no_dup[i][1][j] != 0:
-                    temp += str(j) + ' '
-            temp = temp[:len(temp)-1]
+            if sentiment:   # 判断有无情感
+                # if self.train_no_dup[i][3][0] == 0 and self.train_no_dup[i][3][2] == 0:
+                #     temp += str(0)
+                # else:
+                #     temp += str(1)
+                if self.train_no_dup[i][3][1] > 0:
+                    temp += str(1)
+                elif self.train_no_dup[i][3][0] > self.train_no_dup[i][3][2]:
+                    temp += str(0)
+                elif self.train_no_dup[i][3][2] > self.train_no_dup[i][3][0]:
+                    temp += str(2)
+                else:
+                    temp += str(0)
+            else:
+                for j in range(10):
+                    if self.train_no_dup[i][1][j] != 0:
+                        temp += str(j) + ' '
+                temp = temp[:len(temp)-1]
             article = ''
             for j in self.train_no_dup[i][2]:
                 article += str(self.char2index[j]) + ' '
@@ -174,5 +193,5 @@ class My_dataset(data.Dataset):
 
 if __name__ == '__main__':
     mmm = My_dataset(100)
-    mmm.multilabelfile('multilabel_n.csv')
+    mmm.multilabelfile('multilabel_sentiment_value.csv', sentiment=True)
     pass

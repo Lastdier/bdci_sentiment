@@ -17,6 +17,7 @@ class My_dataset(data.Dataset):
     
     def __init__(self, cv=False):    
         self.elmo = joblib.load('data/sample_vector.pk')
+        print(self.elmo.shape)
         # (8290, 100, 1024)
         self.index2id = []
         self.train_no_dup = {}
@@ -37,6 +38,7 @@ class My_dataset(data.Dataset):
 
         self.seq_len = 100
         self.data_len = len(self.train_no_dup)
+        print(self.data_len)
 
         skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=19950717)
         self.folds = []

@@ -23,20 +23,21 @@ def val(model,dataset):
                     pin_memory = True
                     )
     
-    a = [0] * 10
-    b = [0] * 10
-    c = [0] * 10
     loss = 0.
-    wrong = [0] * 10
-    f1 = 0.
-    count = 0
+    f1_label = []
+    f1_predict = []
     with torch.no_grad():
         for i,(content, characters, label,_) in tqdm.tqdm(enumerate(dataloader)):
             if opt.type_ == 'word':
                 content,label = content.cuda(),label.cuda()
             elif opt.type_ == 'char':
                 content,label = characters.cuda(),label.cuda()
-            score = model(content)
+            
+            if opt.model == 'hybrid_RCNN':
+                characters = characters.cuda()
+                score = model(content, characters)
+            else:
+                score = model(content)
             
             if opt.model == 'LSTMwithAtten':
                     score = score[0]
@@ -48,13 +49,14 @@ def val(model,dataset):
                 ttt = predict[i]
                 tttt = [ttt>0.]
                 predict_ind[i][tttt] = 1
-            f1 += f1_score(label.cpu().numpy(), predict_ind, average='macro')
-            count += 1
+            f1_predict.append(predict_ind)
+            f1_label.append(label.cpu().numpy())
+            # f1 += f1_score(label.cpu().numpy(), predict_ind, average='macro')
 
             
     del score
 
-    ave_f1 = f1 / count
+    ave_f1 = f1_score(np.concatenate(f1_label, axis=0), np.concatenate(f1_predict, axis=0), average='macro')
 
     dataset.change2train()
 
@@ -99,7 +101,8 @@ def main(**kwargs):
             optimizer = model.get_optimizer(opt.lr,opt.lr2,weight_decay=opt.weight_decay)
         batch_count = 0
         notimproved_count = 0
-        f1 = 0.
+        f1_label = []
+        f1_predict = []
         for epoch in range(opt.max_epoch):
             for i,(content, characters, label, sen_id) in tqdm.tqdm(enumerate(dataloader)):
                 if opt.type_ == 'word':
@@ -107,7 +110,13 @@ def main(**kwargs):
                 elif opt.type_ == 'char':
                     content,label = characters.cuda(),label.cuda()
                 optimizer.zero_grad()
-                score = model(content)
+                
+
+                if opt.model == 'hybrid_RCNN':
+                    characters = characters.cuda()
+                    score = model(content, characters)
+                else:
+                    score = model(content)
                 if opt.model == 'LSTMwithAtten':
                     # weights = score[1]
                     score = score[0]
@@ -137,13 +146,16 @@ def main(**kwargs):
                 loss = loss_function(score, label)
                 loss.backward()
                 optimizer.step()
-                
-                f1 += f1_score(label.cpu().numpy(), predict_ind, average='macro')
+                f1_predict.append(predict_ind)
+                f1_label.append(label.cpu().numpy())
                 if batch_count%opt.plot_every ==opt.plot_every-1:
                     
                     # compute average f1 score
-                    f1 = f1 / opt.plot_every
-
+                    
+                    # print(np.concatenate(f1_label, axis=0))
+                    f1 = f1_score(np.concatenate(f1_label, axis=0), np.concatenate(f1_predict, axis=0), average='macro')
+                    f1_label = []
+                    f1_predict = []
                     #eval()
                     print('train average f1: %f' % f1)
                     f1 = 0.

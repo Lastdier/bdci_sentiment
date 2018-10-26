@@ -9,6 +9,7 @@ import sys
 import models
 import tqdm
 from config import opt
+import re
 from data.dataset import My_dataset
 from sklearn.externals import joblib
 import fire
@@ -44,6 +45,7 @@ class My_test_dataset(data.Dataset):
         sentence = sentence.replace('！', '!')
         sentence = sentence.replace('（', '(')
         sentence = sentence.replace('）', ')')
+        sentence = re.sub(r'(https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]', '', sentence)
         sentence = jieba.lcut(sentence, cut_all=False)
 
         # sentence = [self.word2index[word] for word in sentence if self.word2index.get(word) is not None else self.word2index['unknown']]
@@ -98,13 +100,14 @@ def get_processed_test(path):
 
     for i, sentence in enumerate(test['content']):
         sentence = sentence.strip()
+        sentence = re.sub(r'(https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]', '', sentence)
         sentence = sentence.replace(' ', '')
         sentence = sentence.replace('，', ',')
         sentence = sentence.replace('？', '?')
         sentence = sentence.replace('！', '!')
         sentence = sentence.replace('（', '(')
         sentence = sentence.replace('）', ')')
-
+        
         article = ''
         for j in sentence:
             article += str(char2index[j]) + ' '

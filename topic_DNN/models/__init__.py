@@ -6,4 +6,5 @@ from .LSTMforELMo import LSTMforELMo
 from .LSTMwithAtten import LSTMwithAtten
 from .RCNNforELMo import RCNNforELMo
 from .SWEMforELMo import SWEMforELMo
+from .hybrid_RCNN import hybrid_RCNN
 from .loss import multilabelloss,bceloss,multilabel_marginloss,bcewithlogitloss

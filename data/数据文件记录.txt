@@ -1,0 +1,4 @@
+multilabel.csv	用于多标签词袋模型的字、词下标
+multilabel_issentimental.csv	用于判断是否具有情感极性
+multilabel1.csv	初赛训练集
+multilabel_sentimen_value	三分类整体情感，原训练集有0的则置为1，原训练集1比-1大则置2，原训练集-1比大则置0，1和-1相等则置1

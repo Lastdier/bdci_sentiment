@@ -33,10 +33,14 @@ for i, line in tqdm.tqdm(enumerate(elmo)):
     elif len(line_list) == 1 and len(temp) > 0:
         while len(temp) < SEQ_LEN:
             temp.append([0.] * 1024)
-        # TODO: padding?
         sample_vector.append(temp)
         temp = []
         # print(line)
+
+while len(temp) < SEQ_LEN:
+    temp.append([0.] * 1024)
+sample_vector.append(temp)
+
 sample_vector = np.array(sample_vector, dtype=np.float32)
 print(sample_vector.shape)
 print(sample_vector.dtype)

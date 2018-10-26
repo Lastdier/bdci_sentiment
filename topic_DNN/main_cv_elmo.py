@@ -25,8 +25,8 @@ def val(model,dataset):
     
 
     loss = 0.
-    f1 = 0.
-    count = 0
+    f1_label = []
+    f1_predict = []
     with torch.no_grad():
         for i,(content, label, _) in tqdm.tqdm(enumerate(dataloader)):
             content = content.cuda()
@@ -40,13 +40,13 @@ def val(model,dataset):
                 ttt = predict[i]
                 tttt = [ttt>0.]
                 predict_ind[i][tttt] = 1
-            f1 += f1_score(label.cpu().numpy(), predict_ind, average='macro')
-            count += 1
+            f1_predict.append(predict_ind)
+            f1_label.append(label.cpu().numpy())
 
             
     del score
 
-    ave_f1 = f1 / count
+    ave_f1 = f1_score(np.concatenate(f1_label, axis=0), np.concatenate(f1_predict, axis=0), average='macro')
 
     dataset.change2train()
 
@@ -91,7 +91,8 @@ def main(**kwargs):
             optimizer = torch.optim.Adam(params=model.parameters(), weight_decay = opt.weight_decay,lr=lr)
         batch_count = 0
         notimproved_count = 0
-        f1 = 0.
+        f1_label = []
+        f1_predict = []
         for epoch in range(opt.max_epoch):
             for i,(content, label, sen_id) in tqdm.tqdm(enumerate(dataloader)):
                 content = content.cuda()
@@ -109,15 +110,17 @@ def main(**kwargs):
                 loss.backward()
                 optimizer.step()
                 
-                f1 += f1_score(label.cpu().numpy(), predict_ind, average='macro')
+                f1_predict.append(predict_ind)
+                f1_label.append(label.cpu().numpy())
                 if batch_count%opt.plot_every ==opt.plot_every-1:
                     
                     # compute average f1 score
-                    f1 = f1 / opt.plot_every
+                    f1 = f1_score(np.concatenate(f1_label, axis=0), np.concatenate(f1_predict, axis=0), average='macro')
+                    f1_label = []
+                    f1_predict = []
 
                     #eval()
                     print('train average f1: %f' % f1)
-                    f1 = 0.
                     #k = torch.randperm(label.size(0))[0]
 
                 if batch_count%opt.decay_every == opt.decay_every-1:                       

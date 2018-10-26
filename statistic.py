@@ -4,9 +4,10 @@ import jieba
 import json
 import random
 import math
+import fire
 
 
-train = pd.read_csv('data/train.csv')
+train = pd.read_csv('data/train_2.csv')
 jieba.load_userdict('userdict.txt')
 SUBJECT_MASK = {'价格': 0, '配置': 1, '操控': 2, '舒适性': 3, '油耗': 4, '动力': 5, '内饰': 6, '安全性': 7, '空间': 8, '外观': 9}
 SUBJECT_LIST = ['价格', '配置', '操控', '舒适性', '油耗', '动力', '内饰', '安全性', '空间', '外观']
@@ -18,13 +19,12 @@ def subject_distribution():
             subject_stat[i] = 0
         else:
             subject_stat[i] += 1
-
-    print(subject_stat)
+    for i in subject_stat:
+        print(i.decode('utf-8'), subject_stat[i])
+    # print(subject_stat)
 
 
 def sentiment_distribution():
-    for i in subject_stat:
-        print(i.decode('utf-8'), subject_stat[i])
     sentiment = train['sentiment_value']
     sentiment_stat = {}
     for i in sentiment:
@@ -81,9 +81,12 @@ def tokenization(min_count=1):
     vol_dict = {}
     for i in train['content']:
         sentence = i.strip()
+        sentence = sentence.replace(' ', '')
         sentence = sentence.replace('，', ',')
         sentence = sentence.replace('？', '?')
         sentence = sentence.replace('！', '!')
+        sentence = sentence.replace('（', '(')
+        sentence = sentence.replace('）', ')')
         sentence = jieba.cut(sentence, cut_all=False)
         for j in sentence:
             if vol_dict.get(j) is None:
@@ -91,13 +94,15 @@ def tokenization(min_count=1):
             else:
                 vol_dict[j] += 1
     # load test
-    test = pd.read_csv('data/test_public.csv')
+    test = pd.read_csv('data/test_public_2.csv')
     for i in test['content']:
         sentence = i.strip()
         sentence = sentence.replace(' ', '')
         sentence = sentence.replace('，', ',')
         sentence = sentence.replace('？', '?')
         sentence = sentence.replace('！', '!')
+        sentence = sentence.replace('（', '(')
+        sentence = sentence.replace('）', ')')
         sentence = jieba.cut(sentence, cut_all=False)
         for j in sentence:
             if vol_dict.get(j) is None:
@@ -131,7 +136,7 @@ def character_tokenizer(min_count=1):
             else:
                 vol_dict[j] += 1
     # load test
-    test = pd.read_csv('data/test_public.csv')
+    test = pd.read_csv('data/test_public_2.csv')
     for i in test['content']:
         sentence = i.strip()
         sentence = sentence.replace(' ', '')
@@ -212,4 +217,4 @@ def get_95_shortest():
 
 
 if __name__ == '__main__':
-    character_tokenizer()
+    fire.Fire()

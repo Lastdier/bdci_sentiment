@@ -24,8 +24,8 @@ def val(model,dataset):
                     )
     
     loss = 0.
-    f1 = 0.
-    count = 0
+    f1_label = []
+    f1_predict = []
     with torch.no_grad():
         for i, (content, characters, label, topic) in tqdm.tqdm(enumerate(dataloader)):
             if opt.type_ == 'word':
@@ -35,15 +35,16 @@ def val(model,dataset):
             score = model(content, topic)
 
             loss += loss_function(score, label.squeeze(1))
-            predict = score.data.topk(1,dim=1)[1].cpu().numpy()
+            predict = score.data.topk(1,dim=1)[1].cpu().tolist()
             
-            f1 += f1_score(label.cpu().numpy(), predict, average='macro')
-            count += 1
+            f1_label += label.cpu().tolist()
+            f1_predict += predict
+
 
             
     del score
 
-    ave_f1 = f1 / count
+    ave_f1 = f1_score(f1_label, f1_predict, average='macro')
 
     dataset.change2train()
 
@@ -59,6 +60,7 @@ def main(**kwargs):
     loss_function = getattr(models,opt.loss)()  
 
     dataset = My_sentiment_dataset(opt.seq_len, cv=True, augment=opt.augument)
+    print(len(dataset))
     dataloader = data.DataLoader(dataset,
                     batch_size = opt.batch_size,
                     shuffle = True,
@@ -88,7 +90,8 @@ def main(**kwargs):
             optimizer = model.get_optimizer(opt.lr,opt.lr2,weight_decay=opt.weight_decay)
         batch_count = 0
         notimproved_count = 0
-        f1 = 0.
+        f1_label = []
+        f1_predict = []
         for epoch in range(opt.max_epoch):
             for i,(content, characters, label, topic) in tqdm.tqdm(enumerate(dataloader)):
                 if opt.type_ == 'word':
@@ -97,23 +100,23 @@ def main(**kwargs):
                     content,label = characters.cuda(),label.cuda()
                 optimizer.zero_grad()
                 score = model(content, topic)
-                print(score.size())
-                print(label.size())
-                predict = score.data.topk(1,dim=1)[1].cpu().numpy()
+                predict = score.data.topk(1,dim=1)[1].cpu().tolist()
                 loss = loss_function(score, label.squeeze(1))
                 
                 loss.backward()
                 optimizer.step()
                 
-                f1 += f1_score(label.cpu().numpy(), predict, average='macro')
+                f1_label += label.cpu().tolist()
+                f1_predict += predict
+                
                 if batch_count%opt.plot_every ==opt.plot_every-1:
                     
                     # compute average f1 score
-                    f1 = f1 / opt.plot_every
-
+                    f1 = f1_score(f1_label, f1_predict, average='macro')
+                    f1_label = []
+                    f1_predict = []
                     #eval()
-                    print('train average f1: %f' % f1)
-                    f1 = 0.
+                    # print('train average f1: %f' % f1)
                     #k = torch.randperm(label.size(0))[0]
 
                 if batch_count%opt.decay_every == opt.decay_every-1:                       

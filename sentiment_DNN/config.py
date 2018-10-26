@@ -6,7 +6,7 @@ class Config(object):
     model = 'MultiCNNTextBNDeep'
     content_dim = 300
     embedding_dim = 300
-    linear_hidden_size = 500
+    linear_hidden_size = 2000
     num_classes = 3
     
     type_ = 'word'
@@ -33,8 +33,8 @@ class Config(object):
     lr = 5e-4 # 学习率
     lr2 = 1e-4 # embedding层的学习率
     min_lr = 1e-5
-    lr_decay = 0.99
-    weight_decay = 1e-5
+    lr_decay = 0.8
+    weight_decay = 0
 
     batch_size = 128
     plot_every = 10

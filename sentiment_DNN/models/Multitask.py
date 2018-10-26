@@ -25,9 +25,13 @@ class Multitask(BasicModule):
         
         self.fc1 = nn.Linear(2*opt.hidden_size, 2*opt.hidden_size)
         # self.fc2 = nn.Linear(addition_feature_size, opt.hidden_size)
-        self.act1 = nn.Tanh()
-        self.act2 = nn.ReLU(True)
-        self.fc3 = nn.Linear(2*opt.hidden_size, opt.linear_hidden_size)
+        self.norm = nn.BatchNorm1d(opt.linear_hidden_size)
+        self.tanh = nn.Tanh()
+        self.relu = nn.ReLU(True)
+        self.fc3 = nn.Sequential(
+            nn.Linear(2*opt.hidden_size, opt.linear_hidden_size),
+            #nn.BatchNorm1d(opt.linear_hidden_size),
+            nn.ReLU(True))
         mlps = [nn.Linear(opt.linear_hidden_size, 3) for _ in range(10)]
         self.mlps = nn.ModuleList(mlps)
 
@@ -37,14 +41,13 @@ class Multitask(BasicModule):
         # (L, B, H)
         forward = lstm_out[-1,:,:self.opt.hidden_size]
         backward = lstm_out[1,:,self.opt.hidden_size:]
-        represent = torch.cat((forward, backward), dim=-1)
-        print(represent.size())
-        # (1, B, H)
-
-        # (B, L, H)
-        lstm_out = self.fc1(represent)
-        lstm_out = self.act1(lstm_out)
-        lstm_out = self.act2(self.fc3(lstm_out))
+        #(B, H)
+        
+        represent = torch.cat((forward, backward), dim=1)
+        # (B, H)
+        lstm_out = self.fc3(represent)
+        # (B, linear_hidden_size)
+        # lstm_out = self.act2(self.fc3(lstm_out))
         out = self.mlps[topic[0]](lstm_out)
         return out
     
