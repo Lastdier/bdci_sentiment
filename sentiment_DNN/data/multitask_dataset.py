@@ -22,6 +22,7 @@ class My_sentiment_dataset(data.Dataset):
         self.word = []
         self.characters = []
         self.topics = []
+        self.content_id = []
         self.label = train['sentiment_value']
         self.topics_indexs = [[] for _ in range(10)]    # 各主题样本的下标
         self.current_topic = 0  # 当前主题
@@ -44,6 +45,7 @@ class My_sentiment_dataset(data.Dataset):
             this_topic = SUBJECT_MASK[train['subject'][i]]
             self.topics_indexs[this_topic].append(i)
             self.topics.append(this_topic)
+            self.content_id.append(train['content_id'][i])
 
         self.max_len = max_len
         self.char_max_len = 150 # 119 %95
@@ -119,6 +121,7 @@ class My_sentiment_dataset(data.Dataset):
         characters = self.characters[self.current_topic_index_set[index]]
         label = self.label[self.current_topic_index_set[index]]
         topic = self.topics[self.current_topic_index_set[index]]
+        sen_id = self.content_id[self.current_topic_index_set[index]]
 
         if self.augment and self.trainning:
             temp = random.random()
@@ -160,7 +163,7 @@ class My_sentiment_dataset(data.Dataset):
         sentence = torch.from_numpy(np.array(sen_inds)).long()
         characters = torch.from_numpy(np.array(char_inds)).long()
         label = torch.from_numpy(np.array([label+1]))
-        return sentence, characters, label, topic
+        return sentence, characters, label, topic, sen_id
 
     def __len__(self):
         return len(self.current_topic_index_set)

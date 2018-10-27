@@ -29,7 +29,7 @@ def val(model,dataset):
     f1_label = []
     f1_predict = []
     with torch.no_grad():
-        for i, (content, characters, label, topic) in tqdm.tqdm(enumerate(dataloader)):
+        for i, (content, characters, label, topic, _) in tqdm.tqdm(enumerate(dataloader)):
             if opt.type_ == 'word':
                 content,label = content.cuda(),label.cuda()
             elif opt.type_ == 'char':
@@ -90,7 +90,7 @@ def main(**kwargs):
                             shuffle = True,
                             pin_memory = True
                             )
-                for i,(content, characters, label, topic) in enumerate(dataloader):
+                for i,(content, characters, label, topic, _) in enumerate(dataloader):
                     if opt.type_ == 'word':
                         content,label = content.cuda(),label.cuda()
                     elif opt.type_ == 'char':
