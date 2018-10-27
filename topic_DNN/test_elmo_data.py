@@ -9,7 +9,7 @@ import sys
 import models
 import tqdm
 from config import opt
-from data.dataset import My_dataset
+from data.datasetWithELMo import My_dataset
 from sklearn.externals import joblib
 import fire
 sys.path.append("..")
@@ -22,7 +22,7 @@ SUBJECT_MASK = {'价格': 0, '配置': 1, '操控': 2, '舒适性': 3, '油耗':
 class My_test_dataset(data.Dataset):
     
     def __init__(self):
-        self.elmo = joblib.load('data/test_sample_vector.pk')
+        self.elmo = joblib.load('data/sample_test_vector.pk')
         self.test = pd.read_csv('data/test_public.csv')
 
         self.data_len = self.elmo.shape(0)
@@ -108,11 +108,10 @@ def val_fold(name, dataset, pred_probs):
                     )
     
     with torch.no_grad():
-        for content,characters,label,sen_id in dataloader:
+        for content,label,sen_id in dataloader:
+            sen_id = sen_id.tolist()
             if opt.type_ == 'word':
                 content,label = content.cuda(),label.cuda()
-            elif opt.type_ == 'char':
-                content,label = characters.cuda(),label.cuda()
             score = model(content)
             if opt.model == 'LSTMwithAtten':
                 weights = score[1].detach().cpu().numpy()
@@ -147,12 +146,12 @@ def stacking_train_set(**kwargs):
     lll = 100
     if opt.type_ == "char":
         lll = 150
-    dataset = My_dataset(lll, cv=True)
-    cv0 = 'LSTMwithAtten_0_score0.8190264527532458'
-    cv1 = 'LSTMwithAtten_1_score0.8249644882960563'
-    cv2 = 'LSTMwithAtten_2_score0.823813840592126'
-    cv3 = 'LSTMwithAtten_3_score0.8220585173222128'
-    cv4 = 'LSTMwithAtten_4_score0.8191323382473368'
+    dataset = My_dataset(cv=True)
+    cv0 = 'CNNforELMo_0_score0.7570128353006951'
+    cv1 = 'CNNforELMo_1_score0.7642858148797723'
+    cv2 = 'CNNforELMo_2_score0.7694427833594161'
+    cv3 = 'CNNforELMo_3_score0.7749008613135695'
+    cv4 = 'CNNforELMo_4_score0.7658161433354106'
 
     pred_probs = {}
     pred_probs, test_prob = val_fold(cv0, dataset, pred_probs)
@@ -193,7 +192,7 @@ def stacking_train_set(**kwargs):
     # temp = pd.read_csv('result/prob_rcnnoaug_cv.csv')
     # temp = temp.drop('id', axis=1)
     x_test /= 5
-    joblib.dump((xxx, x_test), 'lstm_char.pk')
+    joblib.dump((xxx, x_test), 'elmo_rcnn.pk')
 
 
 if __name__ == "__main__":

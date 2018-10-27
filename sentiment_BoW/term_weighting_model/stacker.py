@@ -12,13 +12,15 @@ from sklearn.base import clone
 import scipy as sp
 import numpy as np
 import pandas as pd
-
+import sys
+sys.path.append("..")
 from utils.path_util import from_project_root, basename
 from term_weighting_model.transformer import generate_vectors
 from utils.data_util import load_to_df
 from utils.proba_util import predict_proba
 
-N_CLASSES = 3
+
+N_CLASSES = 2
 RANDOM_STATE = 19950717
 DROP_WORDS = 0
 N_JOBS = 10
@@ -40,7 +42,7 @@ def load_params():
             'max_n': [1],
             'min_df': [2],
             'max_df': [0.9],
-            'max_features': [200000],
+            'max_features': [20000],
             'balanced': [False, True],
             're_weight': [0]
         },  # 4
@@ -50,7 +52,7 @@ def load_params():
             'max_n': [2],
             'min_df': [3],
             'max_df': [0.8],
-            'max_features': [200000, 2000000],
+            'max_features': [20000, 3000],
             'balanced': [False, True],
             're_weight': [9]
         },  # 8
@@ -60,7 +62,7 @@ def load_params():
             'max_n': [3],
             'min_df': [3],
             'max_df': [0.8],
-            'max_features': [500000, 4000000],
+            'max_features': [20000, 3000],
             'balanced': [False, True],
             're_weight': [0, 9]
         },  # 16
@@ -71,7 +73,7 @@ def load_params():
             'max_n': [3],
             'min_df': [3],
             'max_df': [0.8],
-            'max_features': [300000, 2000000],
+            'max_features': [20000, 3000],
             'balanced': [False, True],
         },  # 8
     ]  # 36
@@ -148,8 +150,8 @@ def feature_stacking(n_splits=CV, random_state=None, use_proba=False, verbose=Fa
     """
 
     clf = LinearSVC()
-    train_url = from_project_root("data/multilabel_sentiment_value.csv")
-    test_url = from_project_root("data/test_set.csv")
+    train_url = from_project_root("data/multilabel_issentimental.csv")
+    test_url = from_project_root("data/test_processed.csv")
     # test_url = None
     X, y, X_test = generate_vectors(train_url, test_url, sublinear_tf=False)  # for X.shape
 

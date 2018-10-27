@@ -13,7 +13,8 @@ from time import time
 import numpy as np
 import scipy.sparse as sp
 import pandas as pd
-
+import sys
+sys.path.append("..")
 from utils.path_util import from_project_root
 from utils.proba_util import predict_proba
 from term_weighting_model.transformer import generate_vectors

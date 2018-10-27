@@ -3,7 +3,7 @@ import numpy as np
 import json
 from torch import nn
 
-kernel_sizes =  [1,2,3,4,5]
+kernel_sizes =  [1,2,3,4]
 class CNNforELMo(nn.Module): 
     def __init__(self, opt ):
         super(CNNforELMo, self).__init__()

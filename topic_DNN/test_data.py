@@ -206,6 +206,7 @@ def val_fold(name, dataset, pred_probs):
     
     with torch.no_grad():
         for content,characters,label,sen_id in dataloader:
+            sen_id = sen_id.tolist()
             if opt.type_ == 'word':
                 content,label = content.cuda(),label.cuda()
             elif opt.type_ == 'char':
@@ -245,11 +246,11 @@ def stacking_train_set(**kwargs):
     if opt.type_ == "char":
         lll = 150
     dataset = My_dataset(lll, cv=True)
-    cv0 = 'LSTMwithAtten_0_score0.8190264527532458'
-    cv1 = 'LSTMwithAtten_1_score0.8249644882960563'
-    cv2 = 'LSTMwithAtten_2_score0.823813840592126'
-    cv3 = 'LSTMwithAtten_3_score0.8220585173222128'
-    cv4 = 'LSTMwithAtten_4_score0.8191323382473368'
+    cv0 = 'RCNN_0_score0.8609293554965426'
+    cv1 = 'RCNN_1_score0.8661635745097402'
+    cv2 = 'RCNN_2_score0.8637762419005226'
+    cv3 = 'RCNN_3_score0.8640282885145515'
+    cv4 = 'RCNN_4_score0.8610654062931957'
 
     pred_probs = {}
     pred_probs, test_prob = val_fold(cv0, dataset, pred_probs)
@@ -290,7 +291,7 @@ def stacking_train_set(**kwargs):
     # temp = pd.read_csv('result/prob_rcnnoaug_cv.csv')
     # temp = temp.drop('id', axis=1)
     x_test /= 5
-    joblib.dump((xxx, x_test), 'lstm_char.pk')
+    joblib.dump((xxx, x_test), 'rcnn_char.pk')
 
 
 if __name__ == "__main__":

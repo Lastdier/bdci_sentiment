@@ -8,7 +8,8 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from collections import defaultdict
 from sklearn.feature_extraction.text import _document_frequency
 from time import time
-
+import sys
+sys.path.append("..")
 import numpy as np
 import scipy.sparse as sp
 
