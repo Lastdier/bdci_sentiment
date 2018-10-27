@@ -23,6 +23,8 @@ class My_sentiment_dataset(data.Dataset):
         self.characters = []
         self.topics = []
         self.label = train['sentiment_value']
+        self.topics_indexs = [[] for _ in range(10)]    # 各主题样本的下标
+        self.current_topic = 0  # 当前主题
         for i, content in enumerate(train['content']):
             characters_list = ''
             content = content.strip()
@@ -39,7 +41,9 @@ class My_sentiment_dataset(data.Dataset):
             
             self.word.append(content)
             self.characters.append(characters_list)
-            self.topics.append(SUBJECT_MASK[train['subject'][i]])
+            this_topic = SUBJECT_MASK[train['subject'][i]]
+            self.topics_indexs[this_topic].append(i)
+            self.topics.append(this_topic)
 
         self.max_len = max_len
         self.char_max_len = 150 # 119 %95
@@ -48,7 +52,8 @@ class My_sentiment_dataset(data.Dataset):
 
         skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=19950717)
         self.folds = []
-        for train_index, test_index in skf.split(np.arange(self.data_len), np.zeros((self.data_len,))):
+        # 按主题均匀划分五折
+        for train_index, test_index in skf.split(np.arange(self.data_len), np.array(self.topics)):
             self.folds.append((train_index, test_index))
         self.fold_index = 0
         self.current_index_set = self.folds[self.fold_index][0]
@@ -56,25 +61,42 @@ class My_sentiment_dataset(data.Dataset):
             self.current_index_set = range(self.data_len)
         self.trainning = True
 
+        self.current_topic_index_set = My_sentiment_dataset.intersect(self.topics_indexs[self.current_topic], self.current_index_set)
+
         self.word2index = opt.word2index
         fff = open('char2index.json', 'r')
         self.char2index = json.load(fff)
         fff.close()
 
         random.seed(19950717)
+    
+    def get_len(self):
+        return self.data_len
 
     def change_fold(self, fold_index):      # including change to training data
         self.fold_index = fold_index
         self.current_index_set = self.folds[self.fold_index][0]
+        self.current_topic_index_set = My_sentiment_dataset.intersect(self.topics_indexs[self.current_topic], self.current_index_set)
         self.trainning = True
     
     def change2val(self):
         self.current_index_set = self.folds[self.fold_index][1]
+        self.current_topic_index_set = self.current_index_set
         self.trainning = False
     
     def change2train(self):
         self.current_index_set = self.folds[self.fold_index][0]
+        self.current_topic_index_set = My_sentiment_dataset.intersect(self.topics_indexs[self.current_topic], self.current_index_set)
         self.trainning = True
+    
+    def change_topic(self, topic):
+        self.current_topic = topic
+        self.current_topic_index_set = My_sentiment_dataset.intersect(self.topics_indexs[self.current_topic], self.current_index_set)
+    
+    @staticmethod
+    def intersect(a, b):
+        return list(set(a) & set(b))
+
 
     # def to_index(self, word):
     #     if self.word2index.get(word) is None:
@@ -93,10 +115,10 @@ class My_sentiment_dataset(data.Dataset):
         return np.random.permutation(d)
 
     def __getitem__(self, index):
-        sentence = self.word[self.current_index_set[index]]
-        characters = self.characters[self.current_index_set[index]]
-        label = self.label[self.current_index_set[index]]
-        topic = self.topics[self.current_index_set[index]]
+        sentence = self.word[self.current_topic_index_set[index]]
+        characters = self.characters[self.current_topic_index_set[index]]
+        label = self.label[self.current_topic_index_set[index]]
+        topic = self.topics[self.current_topic_index_set[index]]
 
         if self.augment and self.trainning:
             temp = random.random()
@@ -141,7 +163,7 @@ class My_sentiment_dataset(data.Dataset):
         return sentence, characters, label, topic
 
     def __len__(self):
-        return len(self.current_index_set)
+        return len(self.current_topic_index_set)
 
 if __name__ == '__main__':
     #mmm = My_dataset(100)

@@ -23,16 +23,18 @@ class Multitask(BasicModule):
                             bidirectional = True
                             )
         
-        self.fc1 = nn.Linear(2*opt.hidden_size, 2*opt.hidden_size)
+        # self.fc1 = nn.Linear(2*opt.hidden_size, 2*opt.hidden_size)
         # self.fc2 = nn.Linear(addition_feature_size, opt.hidden_size)
-        self.norm = nn.BatchNorm1d(opt.linear_hidden_size)
-        self.tanh = nn.Tanh()
-        self.relu = nn.ReLU(True)
+        # self.norm = nn.BatchNorm1d(opt.linear_hidden_size)
+        # self.tanh = nn.Tanh()
+        # self.relu = nn.ReLU(True)
+
+        
         self.fc3 = nn.Sequential(
             nn.Linear(2*opt.hidden_size, opt.linear_hidden_size),
-            #nn.BatchNorm1d(opt.linear_hidden_size),
+            nn.BatchNorm1d(opt.linear_hidden_size),
             nn.ReLU(True))
-        mlps = [nn.Linear(opt.linear_hidden_size, 3) for _ in range(10)]
+        mlps = [nn.Linear(2*opt.hidden_size, 3) for _ in range(10)]
         self.mlps = nn.ModuleList(mlps)
 
     def forward(self, content, topic):
@@ -45,10 +47,10 @@ class Multitask(BasicModule):
         
         represent = torch.cat((forward, backward), dim=1)
         # (B, H)
-        lstm_out = self.fc3(represent)
+        # lstm_out = self.fc3(represent)
         # (B, linear_hidden_size)
         # lstm_out = self.act2(self.fc3(lstm_out))
-        out = self.mlps[topic[0]](lstm_out)
+        out = self.mlps[topic[0]](represent)
         return out
     
     def load_embedding(self, myembedding):

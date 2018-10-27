@@ -13,19 +13,25 @@ class Config(object):
 
     word2index_path = 'word2index.json'
 
-    fff = open(word2index_path, 'r')
+    fff = open('word2index.json', 'r')
     word2index = json.load(fff)
     fff.close()
+    f = open('char2index.json', 'r')
+    char2index = json.load(f)
+    f.close()
 
-    vocab_size = 2867       # len(word2index)
+    word_size = len(word2index)
+    char_size = len(char2index)
+    vocab_size = word_size
 
-    if type_ == 'word':
-        vocab_size = len(word2index)
+    seq_len = 100
+    if type_ == 'char':
+        vocab_size = char_size
+        seq_len = 150
 
     kernel_size = 3
     kernal_sizes = [1,2,3,4]
-
-    seq_len = 150   # 95%_len = 76
+   # 95%_len = 76
 
     embedding_path = 'sgns.weibo.bigram-char'
 
