@@ -132,17 +132,19 @@ def main(save=False):
 
     # 两层stacking，先36个自己stacking
     # y_pred_proba, y, y_test_pred_proba = gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=RANDOM_STATE)
-    # X = np.concatenate((y_pred_proba, X2, X4, X5, X6, X7), axis=1)
-    # X_test = np.concatenate((y_test_pred_proba, X_test2, X_test4, X_test5, X_test6, X_test7), axis=1)
+    # X = np.concatenate((X5, X6), axis=1)
+    # X_test = np.concatenate((X_test5, X_test6), axis=1)
     # result = get_result_from_stacking(clf, X, y, X_test)
     # proba = clf.predict_proba(X_test)
 
     # 传统与深度自己分别stacking，再加权融合
     # y_pred_proba, y, y_test_pred_proba = gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=RANDOM_STATE)
-    # X = np.concatenate((X2, X4, X5, X6, X7), axis=1)
-    # X_test = np.concatenate((X_test2, X_test4, X_test5, X_test6, X_test7), axis=1)
-    # y_pred_probadnn, y, y_test_pred_probadnn = gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=RANDOM_STATE)
-    y_test_pred_proba =  X_test5
+    # X = np.concatenate((y_pred_proba, X5), axis=1)
+    # X_test = np.concatenate((y_test_pred_proba, X_test5), axis=1)
+    # result = get_result_from_stacking(clf, X, y, X_test)
+    # proba = clf.predict_proba(X_test)
+    y_pred_proba, y, y_test_pred_prob = gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=RANDOM_STATE)
+    y_test_pred_proba =  X_test5 * 0.7 + y_test_pred_prob * 0.3
 
     # clf = OneVsRestClassifier(LGBMClassifier(learning_rate=0.01, boosting_type='gbdt', num_leaves=31, max_depth=7, num_class=10,
     #                       subsample=0.6, colsample_bytree=0.65, n_estimators=500, min_child_weight=9,
@@ -176,7 +178,7 @@ def main(save=False):
         for kkk in labels:
             output_str += "%s,%s,0,\n" % (test_public['id'][jjj], SUBJECT_LIST[kkk])
     print('%d no label' % no_label)
-    outfile = open('rcnn.csv', 'w')
+    outfile = open('rcnnBoW_n.csv', 'w')
     outfile.write(output_str)
     outfile.close()
     pass

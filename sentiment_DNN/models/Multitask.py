@@ -59,8 +59,9 @@ class Multitask(BasicModule):
         word2index = json.load(f)
         f.close()
         
-        weight = np.random.uniform(-0.1,0.1,[self.opt.vocab_size, len(myembedding)])
-        weight = np.concatenate([weight, np.zeros((1,len(myembedding)))], 0)
+        weight_pad = np.zeros((1,len(myembedding)))
+        weight = np.random.uniform(-0.1,0.1,[self.opt.vocab_size-1, len(myembedding)])
+        weight = np.concatenate([weight_pad, weight], 0)
         for line in myembedding:
             pair = line.split(' ')
             if word2index.get(pair[0]) is not None:
