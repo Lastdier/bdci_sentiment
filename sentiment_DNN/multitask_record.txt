@@ -1,2 +1,4 @@
-字符 batch_size=128，全连接层500，无BatchNorm 0.5
-字符 batch_size=128，直接分类 0.5
+字符 batch_size=128，全连接层500，无BatchNorm macro 0.5
+字符 batch_size=128，直接分类 macro 0.5，训练集整体 micro f1 = 0.685
+
+
