@@ -1,9 +1,9 @@
 import pandas as pd
 
-sentiment = pd.read_csv('best_sentiment.csv')
+sentiment = pd.read_csv('BoWsentiment.csv')
 id_value = dict(zip(sentiment['content_id'], sentiment['sentiment_value']))
 
-submit = pd.read_csv('result36rcnncnnlstm_o.csv')
+submit = pd.read_csv('rcnn.csv')
 
 sentiment_value = []
 for content_id in submit['content_id'].tolist():

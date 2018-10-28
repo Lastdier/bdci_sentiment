@@ -1,4 +1,5 @@
-multilabel.csv	���ڶ��ǩ�ʴ�ģ�͵��֡����±�
-multilabel_issentimental.csv	�����ж��Ƿ������м���
-multilabel1.csv	����ѵ����
-multilabel_sentimen_value	������������У�ԭѵ������0������Ϊ1��ԭѵ����1��-1������2��ԭѵ����-1�ȴ�����0��1��-1�������1
+multilabel.csv	用于多标签词袋模型的字、词下标
+multilabel_issentimental.csv	用于判断是否具有情感极性
+multilabel1.csv	初赛训练集
+multilabel_sentimen_value	三分类整体情感，原训练集有0的则置为1，原训练集1比-1大则置2，原训练集-1比大则置0，1和-1相等则置1
+multilabel_polarity.csv   只判断情感极性，1和-1，没有为0的样本，0代表负面，1代表正面

@@ -8,6 +8,7 @@ from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKF
 from sklearn.linear_model import SGDClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.externals import joblib
+import fire
 from sklearn.metrics import f1_score, accuracy_score
 from time import time
 import numpy as np
@@ -22,7 +23,7 @@ from term_weighting_model.stacker import generate_meta_feature, gen_data_for_sta
 from term_weighting_model.stacker import model_stacking_from_pk
 
 N_JOBS = 1
-N_CLASSES = 3
+N_CLASSES = 2
 RANDOM_STATE = 19950717
 CV = 5
 
@@ -66,23 +67,42 @@ def train_and_gen_result(clf, X, y, X_test, use_proba=False, save_url=None, n_sp
     return result_df
 
 
-def main():
+def get_result_from_stacking(clf, X, y, X_test):
+    clf.fit(X, y)
+    y_pred = clf.predict(X_test)
+    print(y_pred.shape)
+    #for jjj in y_pred:
+    #    aaa = np.arange(10)
+    #    print(aaa[jjj==1])
+    return y_pred
+
+
+def main(name):
     # load data from pickle
-    pk_url = from_project_root("processed_data/vector/stacked_dc_idf_36.pk")
+    pk_url = from_project_root("processed_data/vector/stacked_dc_idf_"+name+"_36.pk")
     print("loading data from", pk_url)
     X, y, X_test = joblib.load(pk_url)
 
-    train_url = from_project_root("data/train_set.csv")
-    test_url = from_project_root("data/test_set.csv")
+    train_url = from_project_root("data/multilabel_"+name+".csv")
+    test_url = from_project_root("data/test_processed.csv")
 
     print(X.shape, y.shape, X_test.shape)
     clf = XGBClassifier(n_jobs=-1)  # xgb's default n_jobs=1
 
+    result = get_result_from_stacking(clf, X, y, X_test)
+    test_public = pd.read_csv(test_url)['id']
+    output_str = 'content_id,subject,sentiment_value,sentiment_word\n'
+    for jjj in range(len(result)):
+        output_str += "%s,0,%s,\n" % (test_public[jjj], result[jjj])
+    outfile = open('result_36'+name+'.csv', 'w')
+    outfile.write(output_str)
+    outfile.close()
+
     save_url = from_project_root("processed_data/vector/{}_dc_idf_xgb.pk".format(X.shape[1] // N_CLASSES))
-    joblib.dump(gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=None), save_url)
+    joblib.dump(gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=19950717, name=name), save_url)
 
     pass
 
 
 if __name__ == '__main__':
-    main()
+    fire.Fire()

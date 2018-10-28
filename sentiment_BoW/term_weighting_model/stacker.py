@@ -18,6 +18,7 @@ from utils.path_util import from_project_root, basename
 from term_weighting_model.transformer import generate_vectors
 from utils.data_util import load_to_df
 from utils.proba_util import predict_proba
+import fire
 
 
 N_CLASSES = 2
@@ -50,9 +51,9 @@ def load_params():
             'column': ['word_seg', 'article'],
             'trans_type': ['dc'],
             'max_n': [2],
-            'min_df': [3],
+            'min_df': [2],
             'max_df': [0.8],
-            'max_features': [20000, 3000],
+            'max_features': [40000, 5000],
             'balanced': [False, True],
             're_weight': [9]
         },  # 8
@@ -60,20 +61,19 @@ def load_params():
             'column': ['word_seg', 'article'],
             'trans_type': ['dc'],
             'max_n': [3],
-            'min_df': [3],
+            'min_df': [2],
             'max_df': [0.8],
-            'max_features': [20000, 3000],
+            'max_features': [40000, 5000],
             'balanced': [False, True],
             're_weight': [0, 9]
         },  # 16
-    
         {
             'column': ['word_seg', 'article'],
             'trans_type': ['idf'],
             'max_n': [3],
-            'min_df': [3],
+            'min_df': [2],
             'max_df': [0.8],
-            'max_features': [20000, 3000],
+            'max_features': [40000, 5000],
             'balanced': [False, True],
         },  # 8
     ]  # 36
@@ -123,9 +123,9 @@ def run_parallel(index, train_url, test_url, params, clf, n_splits, random_state
         y_pred[cv_index] = clf.predict(X_cv).reshape(-1, 1)
         y_pred_proba[cv_index] = clf._predict_proba_lr(X_cv)
         print("%d/%d cv macro f1 of params set #%d:" % (ind + 1, n_splits, index),
-              f1_score(y_cv, y_pred[cv_index], average='macro'))
+              f1_score(y_cv, y_pred[cv_index], average='micro'))
         y_test_pred_proba += clf._predict_proba_lr(X_test)
-    print("#%d macro f1: " % index, f1_score(y, y_pred, average='macro'))
+    print("#%d macro f1: " % index, f1_score(y, y_pred, average='micro'))
 
     y_test_pred = clf.predict(X_test).reshape(X_test.shape[0], 1)
     y_test_pred_proba /= n_splits  # normalize to 1
@@ -134,7 +134,7 @@ def run_parallel(index, train_url, test_url, params, clf, n_splits, random_state
     return index, y_pred_proba, y_test_pred_proba
 
 
-def feature_stacking(n_splits=CV, random_state=None, use_proba=False, verbose=False, drop_words=DROP_WORDS):
+def feature_stacking(n_splits=CV, random_state=None, use_proba=False, verbose=False, drop_words=DROP_WORDS, name=None):
     """
 
     Args:
@@ -150,11 +150,11 @@ def feature_stacking(n_splits=CV, random_state=None, use_proba=False, verbose=Fa
     """
 
     clf = LinearSVC()
-    train_url = from_project_root("data/multilabel_issentimental.csv")
+    train_url = from_project_root("data/multilabel_"+name+".csv")
     test_url = from_project_root("data/test_processed.csv")
     # test_url = None
     X, y, X_test = generate_vectors(train_url, test_url, sublinear_tf=False)  # for X.shape
-
+    
     params_list = load_params()
     parallel = joblib.Parallel(n_jobs=N_JOBS, verbose=True)
     rets = parallel(joblib.delayed(run_parallel)(
@@ -198,7 +198,7 @@ def model_stacking_from_pk(model_urls):
     return X, y, X_test
 
 
-def gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=None):
+def gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=None,name=None):
     """ generate single model result data for stacking
 
     Args:
@@ -224,9 +224,10 @@ def gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=None):
         y_pred[cv_index] = clf.predict(X_cv)
         y_pred_proba[cv_index] = predict_proba(clf, X_cv)
         print("%d/%d cv macro f1 :" % (ind + 1, n_splits),
-              f1_score(y_cv, y_pred[cv_index], average='macro'))
+              f1_score(y_cv, y_pred[cv_index], average='micro'))
         y_test_pred_proba += predict_proba(clf, X_test)
-    print("macro f1:", f1_score(y, y_pred, average='macro'))  # calc macro_f1 score
+    print("micro f1:", f1_score(y, y_pred, average='micro'))  # calc macro_f1 score
+    joblib.dump(y_pred, 'y_pred_'+name+'.pk')
 
     y_test_pred_proba /= n_splits  # normalize to 1
     return y_pred_proba, y, y_test_pred_proba
@@ -272,12 +273,12 @@ def generate_meta_feature(data_url, normalize=True):
     return meta_df
 
 
-def main():
+def main(name):
     params = load_params()
     print("len(params) =", len(params))
-    save_url = from_project_root("processed_data/vector/stacked_dc_idf_%d.pk" % len(load_params()))
-    joblib.dump(feature_stacking(use_proba=True, random_state=RANDOM_STATE), save_url)
+    save_url = from_project_root("processed_data/vector/stacked_dc_idf_"+name+"_%d.pk" % len(load_params()))
+    joblib.dump(feature_stacking(use_proba=True, random_state=RANDOM_STATE, name=name), save_url)
 
 
 if __name__ == '__main__':
-    main()
+    fire.Fire()

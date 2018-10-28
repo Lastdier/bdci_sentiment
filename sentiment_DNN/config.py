@@ -52,7 +52,7 @@ class Config(object):
 
     kmax_pooling = 1
     hidden_size = 300
-    num_layers = 2
+    num_layers = 1
 
     early_stoping = 5
 

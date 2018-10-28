@@ -9,7 +9,7 @@ from os.path import basename
 
 from utils.path_util import from_project_root
 
-N_CLASSES = 19
+N_CLASSES = 2
 
 
 def pk_to_csv(pk_url):
