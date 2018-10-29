@@ -1,1 +1,1 @@
-python main_cv.py main --augument=False --max_epoch=30 --type_='char' --weight_decay=0 --lr=0.001 --lr2=0.000
+python main_cv.py main --augument=False --max_epoch=30 --type_='char' --weight_decay=0 --lr=0.001 --lr2=0.000 --content_dim=400

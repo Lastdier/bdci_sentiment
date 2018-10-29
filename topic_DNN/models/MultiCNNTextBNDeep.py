@@ -4,7 +4,7 @@ import numpy as np
 import json
 from torch import nn
 
-kernel_sizes =  [1,2,3,4]
+kernel_sizes =  [1,2,3,4,5,6]
 class MultiCNNTextBNDeep(BasicModule): 
     def __init__(self, opt ):
         super(MultiCNNTextBNDeep, self).__init__()
@@ -20,13 +20,13 @@ class MultiCNNTextBNDeep(BasicModule):
                                         kernel_size = kernel_size),
                                 nn.BatchNorm1d(opt.content_dim),
                                 nn.ReLU(inplace=True),
-                                nn.MaxPool1d(kernel_size = (opt.seq_len - kernel_size + 1))
-                                # nn.Conv1d(in_channels = opt.content_dim,
-                                #         out_channels = opt.content_dim,
-                                #         kernel_size = kernel_size),
-                                # nn.BatchNorm1d(opt.content_dim),
-                                # nn.ReLU(inplace=True),
-                                # nn.MaxPool1d(kernel_size = (opt.seq_len - kernel_size*2 + 2))
+                                # nn.MaxPool1d(kernel_size = (opt.seq_len - kernel_size + 1))
+                                nn.Conv1d(in_channels = opt.content_dim,
+                                        out_channels = opt.content_dim,
+                                        kernel_size = kernel_size),
+                                nn.BatchNorm1d(opt.content_dim),
+                                nn.ReLU(inplace=True),
+                                nn.MaxPool1d(kernel_size = (opt.seq_len - kernel_size*2 + 2))
                             )
             for kernel_size in kernel_sizes ]
 
