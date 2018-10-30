@@ -126,10 +126,10 @@ def run_parallel(index, train_url, test_url, params, clf, n_splits, random_state
         #    print(aaa[jjj==1])
         y_pred_proba[cv_index] = clf.predict_proba(X_cv)
         
-        print("%d/%d cv macro f1 of params set #%d:" % (ind + 1, n_splits, index),
-              f1_score(y_cv, y_pred[cv_index], average='macro'))
+        print("%d/%d cv micro f1 of params set #%d:" % (ind + 1, n_splits, index),
+              f1_score(y_cv, y_pred[cv_index], average='micro'))
         y_test_pred_proba += clf.predict_proba(X_test)
-    print("#%d macro f1: " % index, f1_score(y, y_pred, average='macro'))
+    print("#%d micro f1: " % index, f1_score(y, y_pred, average='micro'))
 
     y_test_pred = clf.predict(X_test).reshape(X_test.shape[0], 10)
     y_test_pred_proba /= n_splits  # normalize to 1
@@ -226,13 +226,13 @@ def gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=None):
         clf.fit(X_train, y_train)
         y_pred[cv_index] = clf.predict(X_cv)
         y_pred_proba[cv_index] = clf.predict_proba(X_cv)
-        print("%d/%d cv macro f1 :" % (ind + 1, n_splits),
-              f1_score(y_cv, y_pred[cv_index], average='macro'))
+        print("%d/%d cv micro f1 :" % (ind + 1, n_splits),
+              f1_score(y_cv, y_pred[cv_index], average='micro'))
         y_test_pred_proba += clf.predict_proba(X_test)
     #for jjj in y_pred:
     #    aaa = np.arange(10)
     #    print(aaa[jjj==1])
-    print("macro f1:", f1_score(y, y_pred, average='macro'))  # calc macro_f1 score
+    print("micro f1:", f1_score(y, y_pred, average='micro'))  # calc macro_f1 score
 
     y_test_pred_proba /= n_splits  # normalize to 1
     return y_pred_proba, y, y_test_pred_proba

@@ -82,8 +82,23 @@ def get_result_from_stacking(clf, X, y, X_test):
     return y_pred
 
 
-def output2file(result):
-    pass
+def val(X, y, X_test):
+    predict = []
+    for l in X:
+        temp = [0] * 10
+        temp = np.array(temp)
+        temp[l>0.5] = 1
+        predict.append(temp)
+    predict = np.array(predict)
+    f1 = f1_score(y, predict, average='micro')
+    print(f1)
+    # 计算各类别的f1
+    f1_list = []
+    for i in range(10):
+        f1_list.append(f1_score(y[:,i], predict[:,i]))
+    print('价格', '配置', '操控', '舒适性', '油耗', '动力', '内饰', '安全性', '空间', '外观')
+    print(f1_list)
+    
 
 
 SUBJECT_MASK = {'价格': 0, '配置': 1, '操控': 2, '舒适性': 3, '油耗': 4, '动力': 5, '内饰': 6, '安全性': 7, '空间': 8, '外观': 9}
@@ -97,29 +112,28 @@ def main(save=False):
     pk_url = from_project_root("rcnn_word.pk")
     print("loading data from", pk_url)
     X2, X_test2 = joblib.load(pk_url)
-
-    # pk_url = from_project_root("cnn_word.pk")
-    # print("loading data from", pk_url)
-    # X3, X_test3 = joblib.load(pk_url)
-
-    pk_url = from_project_root("lstm.pk")
+    val(X2, y, X_test2)
+    pk_url = from_project_root("cnn_word.pk")
+    print("loading data from", pk_url)
+    X3, X_test3 = joblib.load(pk_url)
+    val(X3, y, X_test3)
+    pk_url = from_project_root("lstm_word.pk")
     print("loading data from", pk_url)
     X4, X_test4 = joblib.load(pk_url)
-
+    val(X4, y, X_test4)
     pk_url = from_project_root("rcnn_char.pk")
     print("loading data from", pk_url)
     X5, X_test5 = joblib.load(pk_url)
-
+    val(X5, y, X_test5)
     pk_url = from_project_root("cnn_char.pk")
     print("loading data from", pk_url)
     X6, X_test6 = joblib.load(pk_url)
-
+    val(X6, y, X_test6)
     pk_url = from_project_root("lstm_char.pk")
     print("loading data from", pk_url)
     X7, X_test7 = joblib.load(pk_url)
-
+    val(X7, y, X_test7)
     test_url = from_project_root("data/test_processed.csv")
-
     
     clf = OneVsRestClassifier(XGBClassifier(n_jobs=-1))  # xgb's default n_jobs=1
 
@@ -144,7 +158,15 @@ def main(save=False):
     # result = get_result_from_stacking(clf, X, y, X_test)
     # proba = clf.predict_proba(X_test)
     y_pred_proba, y, y_test_pred_prob = gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=RANDOM_STATE)
-    y_test_pred_proba =  X_test5 * 0.7 + y_test_pred_prob * 0.3
+    val(y_pred_proba, y, y_test_pred_prob)
+    X = np.concatenate((y_pred_proba, X3, X4, X5, X6, X7), axis=1)
+    X_test = np.concatenate((y_test_pred_prob, X_test3, X_test4, X_test5, X_test6, X_test7), axis=1)
+    y_pred_proba, y, y_test_pred_prob = gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=RANDOM_STATE)
+    # y_pred_proba = X5 * 0.7 + y_pred_proba * 0.3
+    # y_test_pred_proba =  X_test5 * 0.7 + y_test_pred_prob * 0.3
+    val(y_pred_proba, y, y_test_pred_prob)
+    result = get_result_from_stacking(clf, X, y, X_test)
+    proba = clf.predict_proba(X_test)
 
     # clf = OneVsRestClassifier(LGBMClassifier(learning_rate=0.01, boosting_type='gbdt', num_leaves=31, max_depth=7, num_class=10,
     #                       subsample=0.6, colsample_bytree=0.65, n_estimators=500, min_child_weight=9,
@@ -159,16 +181,16 @@ def main(save=False):
     test_public = pd.read_csv(test_url)
     no_label = 0
     output_str = 'content_id,subject,sentiment_value,sentiment_word\n'
-    for jjj in range(len(y_test_pred_proba)):
+    for jjj in range(len(result)):
         
         aaa = np.arange(10)
-        labels = aaa[y_test_pred_proba[jjj]>0.5]
+        labels = aaa[result[jjj]==1]
 
         # 如果标签没有分类结果
         
         if len(labels) == 0:
             no_label += 1
-            labels = y_test_pred_proba[jjj].argmax()    # 选择有概率最高的作为分类
+            labels = proba[jjj].argmax()    # 选择有概率最高的作为分类
             #output_str += "%s,%s,0,\n" % (test_public['id'][jjj], '无')     # 留出无分类的用单标签分类模型分类
             #continue
 
@@ -178,7 +200,7 @@ def main(save=False):
         for kkk in labels:
             output_str += "%s,%s,0,\n" % (test_public['id'][jjj], SUBJECT_LIST[kkk])
     print('%d no label' % no_label)
-    outfile = open('rcnnBoW_n.csv', 'w')
+    outfile = open('all_stacking.csv', 'w')
     outfile.write(output_str)
     outfile.close()
     pass
