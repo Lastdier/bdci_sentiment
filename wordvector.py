@@ -1,4 +1,4 @@
-from gensim.models import Word2Vec
+# from gensim.models import Word2Vec
 import jieba
 import re
 import pandas as pd
@@ -39,9 +39,23 @@ for i, content in enumerate(test['content']):
     content_set.add(content)
 
 content_list = []
+outstr = ''
+charstr = ''
 for content in content_set:
-    this_list = jieba.lcut(content, cut_all=False)
-    content_list.append(this_list)
-
-model = Word2Vec(content_list, size=100, window=5, min_count=1, workers=10, iter=10)
-model.wv.save_word2vec_format('myword_vector.100dim', binary=False)
+    this_list = jieba.cut(content, cut_all=False)
+    for w in this_list:
+        outstr += w + ' '
+    outstr = outstr[:-1]
+    outstr += '\n'
+    for c in content:
+        charstr += c + ' '
+    charstr = charstr[:-1]
+    charstr += '\n'
+outfile = open('corpus_word.txt', 'w', encoding='utf-8')
+outfile.write(outstr)
+outfile.close()
+outfile = open('corpus_char.txt', 'w', encoding='utf-8')
+outfile.write(charstr)
+outfile.close()
+# model = Word2Vec(content_list, size=100, window=5, min_count=1, workers=10, iter=10)
+# model.wv.save_word2vec_format('myword_vector.100dim', binary=False)
