@@ -12,10 +12,12 @@ from config import opt
 import re
 from data.dataset import My_dataset
 from sklearn.externals import joblib
+from pyhanlp import *
 import fire
 sys.path.append("..")
 
 
+jieba.load_userdict('userdict.txt')
 weight_file = open('weights.csv', 'w')
 SUBJECT_LIST = ['价格', '配置', '操控', '舒适性', '油耗', '动力', '内饰', '安全性', '空间', '外观']
 SUBJECT_MASK = {'价格': 0, '配置': 1, '操控': 2, '舒适性': 3, '油耗': 4, '动力': 5, '内饰': 6, '安全性': 7, '空间': 8, '外观': 9}
@@ -46,12 +48,14 @@ class My_test_dataset(data.Dataset):
         sentence = sentence.replace('（', '(')
         sentence = sentence.replace('）', ')')
         sentence = re.sub(r'(https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]', '', sentence)
-        sentence = jieba.lcut(sentence, cut_all=False)
+        # sentence = jieba.lcut(sentence, cut_all=False)
+        
 
         # sentence = [self.word2index[word] for word in sentence if self.word2index.get(word) is not None else self.word2index['unknown']]
         sen_inds = []
         characters = ''
-        for word in sentence:
+        for word in HanLP.segment(sentence):
+            word = word.word
             if word == ' ':
                 continue
             characters += word
@@ -246,11 +250,11 @@ def stacking_train_set(**kwargs):
     if opt.type_ == "char":
         lll = 150
     dataset = My_dataset(lll, cv=True)
-    cv0 = 'RCNN_0_score0.8609293554965426'
-    cv1 = 'RCNN_1_score0.8661635745097402'
-    cv2 = 'RCNN_2_score0.8637762419005226'
-    cv3 = 'RCNN_3_score0.8640282885145515'
-    cv4 = 'RCNN_4_score0.8610654062931957'
+    cv0 = 'LSTMText_0_score0.8743497398959583'
+    cv1 = 'LSTMText_1_score0.8759991801598689'
+    cv2 = 'LSTMText_2_score0.8768492602958816'
+    cv3 = 'LSTMText_3_score0.8825169255276781'
+    cv4 = 'LSTMText_4_score0.8808820633983067'
 
     pred_probs = {}
     pred_probs, test_prob = val_fold(cv0, dataset, pred_probs)
@@ -291,7 +295,7 @@ def stacking_train_set(**kwargs):
     # temp = pd.read_csv('result/prob_rcnnoaug_cv.csv')
     # temp = temp.drop('id', axis=1)
     x_test /= 5
-    joblib.dump((xxx, x_test), 'rcnn_char.pk')
+    joblib.dump((xxx, x_test), 'lstm_word.pk')
 
 
 if __name__ == "__main__":

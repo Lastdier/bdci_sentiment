@@ -5,9 +5,10 @@ import json
 import random
 import math
 import fire
+from pyhanlp import *
 
 
-train = pd.read_csv('data/train_2.csv')
+train = pd.read_csv('data/train.csv')
 jieba.load_userdict('userdict.txt')
 SUBJECT_MASK = {'价格': 0, '配置': 1, '操控': 2, '舒适性': 3, '油耗': 4, '动力': 5, '内饰': 6, '安全性': 7, '空间': 8, '外观': 9}
 SUBJECT_LIST = ['价格', '配置', '操控', '舒适性', '油耗', '动力', '内饰', '安全性', '空间', '外观']
@@ -87,14 +88,15 @@ def tokenization(min_count=1):
         sentence = sentence.replace('！', '!')
         sentence = sentence.replace('（', '(')
         sentence = sentence.replace('）', ')')
-        sentence = jieba.cut(sentence, cut_all=False)
-        for j in sentence:
+        # sentence = jieba.cut(sentence, cut_all=False)
+        for j in HanLP.segment(sentence):
+            j = j.word
             if vol_dict.get(j) is None:
                 vol_dict[j] = 1
             else:
                 vol_dict[j] += 1
     # load test
-    test = pd.read_csv('data/test_public_2.csv')
+    test = pd.read_csv('data/test_public.csv')
     for i in test['content']:
         sentence = i.strip()
         sentence = sentence.replace(' ', '')
@@ -103,8 +105,9 @@ def tokenization(min_count=1):
         sentence = sentence.replace('！', '!')
         sentence = sentence.replace('（', '(')
         sentence = sentence.replace('）', ')')
-        sentence = jieba.cut(sentence, cut_all=False)
-        for j in sentence:
+        # sentence = jieba.cut(sentence, cut_all=False)
+        for j in HanLP.segment(sentence):
+            j = j.word
             if vol_dict.get(j) is None:
                 vol_dict[j] = 1
             else:
@@ -118,7 +121,7 @@ def tokenization(min_count=1):
             word2index[i] = pointer
             pointer += 1
     
-    with open('topic_DNN/word2index.json', 'w', encoding='utf-8') as outfile:
+    with open('word2isentence_hanlp.json', 'w', encoding='utf-8') as outfile:
         json.dump(word2index, outfile)
 
 

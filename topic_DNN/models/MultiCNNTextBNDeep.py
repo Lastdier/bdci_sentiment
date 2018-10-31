@@ -13,7 +13,7 @@ class MultiCNNTextBNDeep(BasicModule):
         self.opt=opt
         self.encoder = nn.Embedding(opt.vocab_size,opt.embedding_dim, padding_idx=0)
         if opt.embedding_path:
-            self.encoder.from_pretrained(self.load_embedding())
+            self.encoder.from_pretrained(self.load_embedding(MyEmbeddings(opt.embedding_path)))
 
         content_convs = [ nn.Sequential(
                                 nn.Conv1d(in_channels = opt.embedding_dim,
@@ -53,8 +53,20 @@ class MultiCNNTextBNDeep(BasicModule):
         logits = self.fc((reshaped))
         return logits
     
-    def load_embedding(self):
-        weight = joblib.load('mixed_'+self.opt.type_+'_500.pk')
+    def load_embedding(self, myembedding):
+        path = self.opt.type_ + '2index.json'
+        f = open(path, 'r')
+        word2index = json.load(f)
+        f.close()
+        
+        weight_pad = np.zeros((1,len(myembedding)))
+        weight = np.random.uniform(-0.1,0.1,[self.opt.vocab_size-1, len(myembedding)])
+        weight = np.concatenate([weight_pad, weight], 0)
+        for line in myembedding:
+            pair = line.split(' ')
+            if word2index.get(pair[0]) is not None:
+                weight[word2index[pair[0]]] = [float(i) for i in pair[1:]]
+
         weight = t.tensor(weight, dtype=t.float32)
         print('pretrain wordvec loaded!')
         return weight

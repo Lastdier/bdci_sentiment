@@ -65,7 +65,7 @@ class RCNN(BasicModule):
         return logits
     
     def load_embedding(self):
-        weight = joblib.load('mixed_'+self.opt.type_+'_500.pk')
+        weight = joblib.load('preW2V_CWE_Glove_'+self.opt.type_+'_500.pk')
         weight = t.tensor(weight, dtype=t.float32)
         print('pretrain wordvec loaded!')
         return weight

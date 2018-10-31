@@ -10,6 +10,7 @@ import sys
 sys.path.append("..")
 from config import opt
 import re
+from pyhanlp import *
 
 
 jieba.load_userdict('userdict.txt')
@@ -38,10 +39,10 @@ class My_dataset(data.Dataset):
                 content = content.replace('！', '!')
                 content = content.replace('（', '(')
                 content = content.replace('）', ')')
-                content = jieba.lcut(content, cut_all=False)
+                # content = jieba.lcut(content, cut_all=False)
                 character_list = ''
-                for w in content:
-                    character_list += w    
+                for w in HanLP.segment(content):
+                    character_list += w.word   
 
                 self.train_no_dup[content_id] = [content, label, character_list, sentiment]
             # add new label
