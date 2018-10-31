@@ -25,6 +25,8 @@ def merge_embedding(type_, word2vec, glove):
             temp = np.random.uniform(-0.1,0.1,[1, len(pretrained)]).reshape((len(pretrained),))
             temp = temp.tolist()
             word_dict[word2index[pair[0]]] = temp
+        if pair[1] == '':
+            continue
         word_dict[word2index[pair[0]]] += [float(i) for i in pair[1:]]
     myglove = MyEmbeddings(glove)
     for line in myglove:

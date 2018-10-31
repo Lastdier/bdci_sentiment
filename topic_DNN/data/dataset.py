@@ -80,10 +80,10 @@ class My_dataset(data.Dataset):
             temp = ''
             if sentiment:   
                 # 判断有无情感
-                # if self.train_no_dup[i][3][0] == 0 and self.train_no_dup[i][3][2] == 0:
-                #     temp += str(0)
-                # else:
-                #     temp += str(1)
+                if self.train_no_dup[i][3][1] > 0:
+                    temp += str(0)
+                else:
+                    temp += str(1)
 
                 # 判断情感三分类
                 # if self.train_no_dup[i][3][1] > 0:
@@ -96,12 +96,12 @@ class My_dataset(data.Dataset):
                 #     temp += str(0)
 
                 # 判断正负情感
-                if self.train_no_dup[i][3][0] > self.train_no_dup[i][3][2]:
-                    temp += str(0)  # 负情感为0
-                elif self.train_no_dup[i][3][2] > self.train_no_dup[i][3][0]:
-                    temp += str(1)  # 正情感为1
-                else:
-                    continue
+                # if self.train_no_dup[i][3][0] > self.train_no_dup[i][3][2]:
+                #     temp += str(0)  # 负情感为0
+                # elif self.train_no_dup[i][3][2] > self.train_no_dup[i][3][0]:
+                #     temp += str(1)  # 正情感为1
+                # else:
+                #     continue
             else:
                 for j in range(10):
                     if self.train_no_dup[i][1][j] != 0:
@@ -205,5 +205,5 @@ class My_dataset(data.Dataset):
 
 if __name__ == '__main__':
     mmm = My_dataset(100)
-    mmm.multilabelfile('multilabel_polarity.csv', sentiment=True)
+    mmm.multilabelfile('multilabel_issentimental_conservative.csv', sentiment=True)
     pass
