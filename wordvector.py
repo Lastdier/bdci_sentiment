@@ -15,7 +15,6 @@ for i, content in enumerate(train['content']):
     if content in content_set:
         continue
     content_set.add(content)
-    temp = ''
     content = re.sub(r'(https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]', '', content)
     content = content.replace(' ', '')
     content = content.replace('，', ',')
@@ -29,7 +28,6 @@ for i, content in enumerate(test['content']):
     if content in content_set:
         continue
     content_set.add(content)
-    temp = ''
     content = re.sub(r'(https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]', '', content)
     content = content.replace(' ', '')
     content = content.replace('，', ',')

@@ -10,7 +10,7 @@ def merge_embedding(type_, word2vec, glove):
     word2index = json.load(f)
     f.close()
 
-    pretrained = MyEmbeddings('sgns.weibo.bigram-char') 
+    pretrained = MyEmbeddings('wiki_word.txt') 
     myword2vec = MyEmbeddings(word2vec)
     word_dict = {}
     for line in pretrained:
@@ -22,6 +22,7 @@ def merge_embedding(type_, word2vec, glove):
         if word2index.get(pair[0]) is None:
             continue
         if word_dict.get(word2index[pair[0]]) is None:
+            print('CWE!')
             temp = np.random.uniform(-0.1,0.1,[1, len(pretrained)]).reshape((len(pretrained),))
             temp = temp.tolist()
             word_dict[word2index[pair[0]]] = temp
@@ -29,12 +30,18 @@ def merge_embedding(type_, word2vec, glove):
             continue
         word_dict[word2index[pair[0]]] += [float(i) for i in pair[1:]]
     myglove = MyEmbeddings(glove)
+    count_ = 0
     for line in myglove:
         pair = line.split(' ')
         if word2index.get(pair[0]) is None:
             continue
+        if word_dict.get(word2index[pair[0]]) is None:
+            count_+=1
+            temp = np.random.uniform(-0.1,0.1,[1, len(pretrained)+100]).reshape((len(pretrained)+100,))
+            temp = temp.tolist()
+            word_dict[word2index[pair[0]]] = temp
         word_dict[word2index[pair[0]]] += [float(i) for i in pair[1:]]
-    
+    print('%d words not in cwe!'%count_)
     #count = 0
     weight_pad = np.zeros((1,len(pretrained)+200))
     weight = np.random.uniform(-0.1,0.1,[len(word2index)-1, len(pretrained)+200])
@@ -44,7 +51,7 @@ def merge_embedding(type_, word2vec, glove):
             weight[word2index[w]] = word_dict[w]
     print(weight.dtype)
     print(weight.shape)
-    joblib.dump(weight, 'mixed_'+type_+'_500.pk')
+    joblib.dump(weight, 'CWE_Glove_'+type_+'_500.pk')
     
 
 class MyEmbeddings(object):

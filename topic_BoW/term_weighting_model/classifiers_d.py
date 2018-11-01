@@ -11,7 +11,7 @@ from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKF
 from sklearn.linear_model import SGDClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.externals import joblib
-from sklearn.metrics import f1_score, accuracy_score
+from sklearn.metrics import f1_score, precision_score, recall_score
 from time import time
 import numpy as np
 import scipy.sparse as sp
@@ -94,9 +94,15 @@ def val(X, y, X_test):
     print(f1)
     # 计算各类别的f1
     f1_list = []
+    percision_list = []
+    recall_list = []
     for i in range(10):
         f1_list.append(f1_score(y[:,i], predict[:,i]))
+        percision_list.append(precision_score(y[:,i], predict[:,i]))
+        recall_list.append(recall_score(y[:,i], predict[:,i]))
     print('价格', '配置', '操控', '舒适性', '油耗', '动力', '内饰', '安全性', '空间', '外观')
+    print(percision_list)
+    print(recall_list)
     print(f1_list)
     
 
@@ -125,7 +131,7 @@ def main(save=False):
     print("loading data from", pk_url)
     X5, X_test5 = joblib.load(pk_url)
     val(X5, y, X_test5)
-    pk_url = from_project_root("cnn_char.pk")
+    pk_url = from_project_root("cnn_char_cwe.pk")
     print("loading data from", pk_url)
     X6, X_test6 = joblib.load(pk_url)
     val(X6, y, X_test6)
@@ -138,14 +144,16 @@ def main(save=False):
     clf = OneVsRestClassifier(XGBClassifier(n_jobs=-1))  # xgb's default n_jobs=1
 
     # 与36一同stacking
-    # X = np.concatenate((X, X2, X4, X5, X6, X7), axis=1)
-    # X_test = np.concatenate((X_test, X_test2, X_test4, X_test5, X_test6, X_test7), axis=1)
+    # y_pred_proba, y, y_test_pred_proba = gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=RANDOM_STATE)
+    # X = np.concatenate((X5[:,0].reshape(-1,1),X6[:,1].reshape(-1,1),y_pred_proba[:,2].reshape(-1,1),X7[:,3].reshape(-1,1),X3[:,4].reshape(-1,1), X5[:,5].reshape(-1,1), X3[:,6].reshape(-1,1), X7[:,7].reshape(-1,1), X7[:,8].reshape(-1,1), X6[:,9].reshape(-1,1)), axis=1)
+    # X_test = np.concatenate((X_test5[:,0].reshape(-1,1),X_test6[:,1].reshape(-1,1),y_test_pred_proba[:,2].reshape(-1,1),X_test7[:,3].reshape(-1,1),X_test3[:,4].reshape(-1,1), X_test5[:,5].reshape(-1,1), X_test3[:,6].reshape(-1,1), X_test7[:,7].reshape(-1,1), X_test7[:,8].reshape(-1,1), X_test6[:,9].reshape(-1,1)), axis=1)
+    # val(X, y, X_test)
     # print(X.shape, y.shape, X_test.shape)
     # result = get_result_from_stacking(clf, X, y, X_test)
     # proba = clf.predict_proba(X_test)
 
     # 两层stacking，先36个自己stacking
-    # y_pred_proba, y, y_test_pred_proba = gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=RANDOM_STATE)
+    
     # X = np.concatenate((X5, X6), axis=1)
     # X_test = np.concatenate((X_test5, X_test6), axis=1)
     # result = get_result_from_stacking(clf, X, y, X_test)
@@ -157,16 +165,17 @@ def main(save=False):
     # X_test = np.concatenate((y_test_pred_proba, X_test5), axis=1)
     # result = get_result_from_stacking(clf, X, y, X_test)
     # proba = clf.predict_proba(X_test)
+    X = np.concatenate((X, X2, X3, X4, X5, X6, X7), axis=1)
+    X_test = np.concatenate((X_test, X_test2, X_test3, X_test4, X_test5, X_test6, X_test7), axis=1)
     y_pred_proba, y, y_test_pred_prob = gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=RANDOM_STATE)
     val(y_pred_proba, y, y_test_pred_prob)
-    X = np.concatenate((y_pred_proba, X3, X4, X5, X6, X7), axis=1)
-    X_test = np.concatenate((y_test_pred_prob, X_test3, X_test4, X_test5, X_test6, X_test7), axis=1)
-    y_pred_proba, y, y_test_pred_prob = gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=RANDOM_STATE)
-    # y_pred_proba = X5 * 0.7 + y_pred_proba * 0.3
-    # y_test_pred_proba =  X_test5 * 0.7 + y_test_pred_prob * 0.3
+    
+    # y_pred_proba, y, y_test_pred_prob = gen_data_for_stacking(clf, X, y, X_test, n_splits=5, random_state=RANDOM_STATE)
+    y_pred_proba = y_pred_proba*0.7 + X6*0.1 + X5 * 0.1 + X7*0.1
+    y_test_pred_proba =  y_test_pred_prob *0.7 + X_test6 *0.1 + X_test5 + X_test7 *0.1
     val(y_pred_proba, y, y_test_pred_prob)
-    result = get_result_from_stacking(clf, X, y, X_test)
-    proba = clf.predict_proba(X_test)
+    # result = get_result_from_stacking(clf, X, y, X_test)
+    # proba = clf.predict_proba(X_test)
 
     # clf = OneVsRestClassifier(LGBMClassifier(learning_rate=0.01, boosting_type='gbdt', num_leaves=31, max_depth=7, num_class=10,
     #                       subsample=0.6, colsample_bytree=0.65, n_estimators=500, min_child_weight=9,
@@ -181,16 +190,18 @@ def main(save=False):
     test_public = pd.read_csv(test_url)
     no_label = 0
     output_str = 'content_id,subject,sentiment_value,sentiment_word\n'
-    for jjj in range(len(result)):
+    for jjj in range(len(X_test)):
         
         aaa = np.arange(10)
-        labels = aaa[result[jjj]==1]
+        labels = aaa[X_test[jjj]>0.5]
 
         # 如果标签没有分类结果
         
         if len(labels) == 0:
             no_label += 1
-            labels = proba[jjj].argmax()    # 选择有概率最高的作为分类
+            labels = X_test[jjj].argmax()    # 选择有概率最高的作为分类
+            print(labels)
+            print(test_public['id'][jjj])
             #output_str += "%s,%s,0,\n" % (test_public['id'][jjj], '无')     # 留出无分类的用单标签分类模型分类
             #continue
 
@@ -200,7 +211,7 @@ def main(save=False):
         for kkk in labels:
             output_str += "%s,%s,0,\n" % (test_public['id'][jjj], SUBJECT_LIST[kkk])
     print('%d no label' % no_label)
-    outfile = open('all_stacking.csv', 'w')
+    outfile = open('10dif.csv', 'w')
     outfile.write(output_str)
     outfile.close()
     pass

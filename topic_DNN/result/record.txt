@@ -1,0 +1,79 @@
+cnn.csv
+There are 3114 subjects in 2753 samples
+average topic number: 1.13
+Trainning set average: 1.18
+主题 个数 与训练集分布相比%
+价格 437 1.03
+配置 255 -0.36
+操控 292 -0.98
+舒适性 290 -0.09
+油耗 338 -0.12
+动力 870 0.45
+内饰 158 -0.24
+安全性 217 1.12
+空间 131 -0.04
+外观 126 -0.77
+
+rcnn.csv
+There are 3085 subjects in 2753 samples
+average topic number: 1.12
+Trainning set average: 1.18
+主题 个数 与训练集分布相比%
+价格 436 1.13
+配置 257 -0.22
+操控 284 -1.15
+舒适性 284 -0.20
+油耗 345 0.21
+动力 866 0.58
+内饰 149 -0.49
+安全性 204 0.76
+空间 130 -0.04
+外观 130 -0.60
+
+lstm.csv
+There are 3107 subjects in 2753 samples
+average topic number: 1.13
+Trainning set average: 1.18
+主题 个数 与训练集分布相比%
+价格 434 0.97
+配置 257 -0.28
+操控 288 -1.09
+舒适性 281 -0.36
+油耗 348 0.23
+动力 879 0.80
+内饰 153 -0.39
+安全性 210 0.91
+空间 130 -0.07
+外观 127 -0.73
+
+bow.csv
+There are 3144 subjects in 2753 samples
+average topic number: 1.14
+Trainning set average: 1.18
+主题 个数 与训练集分布相比%
+价格 442 1.06
+配置 256 -0.41
+操控 283 -1.36
+舒适性 286 -0.30
+油耗 349 0.13
+动力 890 0.82
+内饰 152 -0.48
+安全性 214 0.96
+空间 133 -0.02
+外观 139 -0.39
+
+all_stacking2.csv
+There are 3091 subjects in 2753 samples
+average topic number: 1.12
+Trainning set average: 1.18
+主题 个数 与训练集分布相比%
+价格 441 1.27
+配置 255 -0.30
+操控 283 -1.20
+舒适性 285 -0.18
+油耗 328 -0.36
+动力 877 0.89
+内饰 153 -0.37
+安全性 211 0.98
+空间 132 0.02
+外观 126 -0.74
