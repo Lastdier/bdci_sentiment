@@ -4,7 +4,7 @@
 from itertools import product
 from collections import Counter
 from os.path import exists
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import StratifiedKFold, KFold
 from sklearn.metrics import f1_score, accuracy_score
 from sklearn.svm import SVC
 from sklearn.multiclass import OneVsRestClassifier
@@ -18,6 +18,7 @@ sys.path.append("..")
 from utils.path_util import from_project_root, basename
 from term_weighting_model.transformer import generate_vectors
 from utils.data_util import load_to_df
+from term_weighting_model.classes import LinearSVCP
 #from utils.proba_util import predict_proba
 
 N_CLASSES = 10
@@ -110,11 +111,12 @@ def run_parallel(index, train_url, test_url, params, clf, n_splits, random_state
     if not sp.sparse.isspmatrix_csr(X):
         X = sp.sparse.csr_matrix(X)
 
-    skf = StratifiedKFold(n_splits=n_splits, shuffle=bool(random_state), random_state=random_state)
+    # skf = StratifiedKFold(n_splits=n_splits, shuffle=bool(random_state), random_state=random_state)
+    kf = KFold(n_splits=n_splits, shuffle=bool(random_state), random_state=random_state)
     y_pred = np.zeros((X.shape[0], 10))
     y_pred_proba = np.zeros((X.shape[0], N_CLASSES))
     y_test_pred_proba = np.zeros((X_test.shape[0], N_CLASSES))
-    for ind, (train_index, cv_index) in enumerate(skf.split(X, np.zeros((len(y),)))):
+    for ind, (train_index, cv_index) in enumerate(kf.split(X)):
         
         X_train, X_cv = X[train_index], X[cv_index]
         y_train, y_cv = y[train_index], y[cv_index]
@@ -153,9 +155,13 @@ def feature_stacking(n_splits=CV, random_state=None, use_proba=False, verbose=Fa
 
     """
 
-    clf = OneVsRestClassifier(SVC(kernel='linear', probability=True)) # multilabel
-    train_url = from_project_root("data/multilabel.csv")
-    test_url = from_project_root("data/test_processed.csv")
+    # clf = OneVsRestClassifier(SVC(kernel='linear', probability=True)) # multilabel
+    clf = OneVsRestClassifier(LinearSVCP())  # LinearSVC for multilabel
+    # train_url = from_project_root("data/multilabel.csv")
+    # test_url = from_project_root("data/test_processed.csv")
+    train_url = from_project_root("../data/multilabel.csv")
+    test_url = from_project_root("../data/test_processed.csv")
+
     # test_url = None
     X, y, X_test = generate_vectors(train_url, test_url, sublinear_tf=False)  # for X.shape
 
@@ -163,7 +169,7 @@ def feature_stacking(n_splits=CV, random_state=None, use_proba=False, verbose=Fa
     parallel = joblib.Parallel(n_jobs=N_JOBS, verbose=True)
     
     rets = parallel(joblib.delayed(run_parallel)(
-        ind, train_url, test_url, params, OneVsRestClassifier(SVC(kernel='linear', probability=True)), n_splits, random_state, use_proba, verbose, drop_words
+        ind, train_url, test_url, params, clf, n_splits, random_state, use_proba, verbose, drop_words
     ) for ind, params in enumerate(params_list))
     rets = sorted(rets, key=lambda x: x[0])
 
@@ -281,7 +287,7 @@ def generate_meta_feature(data_url, normalize=True):
 def main():
     params = load_params()
     print("len(params) =", len(params))
-    save_url = from_project_root("processed_data/vector/stacked_dc_idf_%d.pk" % len(load_params()))
+    save_url = from_project_root("processed_data/vector/stacked_dc_idf_lsvc_%d.pk" % len(load_params()))
     joblib.dump(feature_stacking(use_proba=True, random_state=RANDOM_STATE), save_url)
 
 
