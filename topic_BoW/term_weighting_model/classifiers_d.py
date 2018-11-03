@@ -139,6 +139,11 @@ def main(save=False):
     print("loading data from", pk_url)
     X7, X_test7 = joblib.load(pk_url)
     val(X7, y, X_test7)
+    
+    # pk_url = from_project_root("32_hybrid_10_clf.pkl")
+    # print("loading data from", pk_url)
+    # X8,_, X_test8 = joblib.load(pk_url)
+    # val(X8, y, X_test8)
     test_url = from_project_root("data/test_processed.csv")
     
     clf = OneVsRestClassifier(XGBClassifier(n_jobs=-1))  # xgb's default n_jobs=1
@@ -188,30 +193,37 @@ def main(save=False):
     
     
     test_public = pd.read_csv(test_url)
-    no_label = 0
+    len_list = [len(l.split(' ')) for l in test_public['word_seg']]
+    #no_label = 0
     output_str = 'content_id,subject,sentiment_value,sentiment_word\n'
-    for jjj in range(len(X_test)):
+    for jjj in range(len(y_test_pred_proba)):
+        if len_list[jjj] > 50:
+            aaa = np.arange(10)
+            labels = aaa[y_test_pred_proba[jjj]>0.5]
+            if len(labels) > 2:
+                labels = y_test_pred_proba[jjj].argsort()[-2:][::-1]
+        else:
+            labels = [y_test_pred_proba[jjj].argmax()]
         
-        aaa = np.arange(10)
-        labels = aaa[X_test[jjj]>0.5]
 
         # 如果标签没有分类结果
         
         if len(labels) == 0:
-            no_label += 1
-            labels = X_test[jjj].argmax()    # 选择有概率最高的作为分类
-            print(labels)
-            print(test_public['id'][jjj])
+            #no_label += 1
+            labels = y_test_pred_proba[jjj].argmax()    # 选择有概率最高的作为分类
+            # print(labels)
+            # print(test_public['id'][jjj])
             #output_str += "%s,%s,0,\n" % (test_public['id'][jjj], '无')     # 留出无分类的用单标签分类模型分类
             #continue
 
         if type(labels) == np.int64:
             output_str += "%s,%s,0,\n" % (test_public['id'][jjj], SUBJECT_LIST[labels])
             continue
+        print(labels)
         for kkk in labels:
             output_str += "%s,%s,0,\n" % (test_public['id'][jjj], SUBJECT_LIST[kkk])
-    print('%d no label' % no_label)
-    outfile = open('10dif.csv', 'w')
+    #print('%d no label' % no_label)
+    outfile = open('50config.csv', 'w')
     outfile.write(output_str)
     outfile.close()
     pass
